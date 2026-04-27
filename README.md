@@ -1,5 +1,9 @@
 # cli-anything-capcut
 
+[![tests](https://github.com/juliang8507/cli-anything-capcut/actions/workflows/test.yml/badge.svg)](https://github.com/juliang8507/cli-anything-capcut/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+
 CapCut / JianYing(剪映) 드래프트를 CLI로 스크립팅하는 하네스. `pyCapCut` 라이브러리 위에서 이벤트 소스 세션을 관리하고 원샷 커맨드와 인터랙티브 REPL을 제공합니다.
 
 > **현재 버전: 0.5.1**
