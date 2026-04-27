@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cli-anything-capcut"
+version = "0.5.1"
+description = "CLI harness for pyCapCut — scriptable CapCut / JianYing draft generation"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [{ name = "juliang8507" }]
+keywords = ["capcut", "jianying", "video", "cli", "automation"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Video",
+]
+dependencies = [
+    "click>=8.0.0,<9.0.0",
+    "prompt-toolkit>=3.0.0,<4.0.0",
+    "pycapcut>=0.0.3,<1.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-cov"]
+windows-render = ["uiautomation>=2.0"]
+plan = ["anthropic>=0.40.0"]
+
+[project.scripts]
+cli-anything-capcut = "cli_anything.capcut.capcut_cli:main"
+
+[project.urls]
+Homepage = "https://github.com/juliang8507/cli-anything-capcut"
+Issues = "https://github.com/juliang8507/cli-anything-capcut/issues"
+
+[tool.setuptools.packages.find]
+include = ["cli_anything*"]
+namespaces = true
+
+[tool.pytest.ini_options]
+testpaths = ["cli_anything/capcut/tests"]

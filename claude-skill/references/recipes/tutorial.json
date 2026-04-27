@@ -1,0 +1,66 @@
+{
+  "name": "tutorial",
+  "description": "Multi-clip tutorial — sequential clips with dissolve transitions, lower-third labels, narration. v0.4 spec.",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "operations": [
+    {
+      "id": "step1",
+      "op": "add_video",
+      "args": { "file": "{{VIDEO_FILE_1}}", "track": "V1", "start": "0s", "duration": "auto" }
+    },
+    {
+      "id": "step2",
+      "op": "add_video",
+      "args": { "file": "{{VIDEO_FILE_2}}", "track": "V1", "start": "auto", "duration": "auto" }
+    },
+    {
+      "id": "step3",
+      "op": "add_video",
+      "args": { "file": "{{VIDEO_FILE_3}}", "track": "V1", "start": "auto", "duration": "auto" }
+    },
+    {
+      "op": "add_video_transition",
+      "args": { "track": "V1", "segment_ref": "step1", "name": "dissolve", "duration": "0.6s" }
+    },
+    {
+      "op": "add_video_transition",
+      "args": { "track": "V1", "segment_ref": "step2", "name": "dissolve", "duration": "0.6s" }
+    },
+    {
+      "id": "label1",
+      "op": "add_text",
+      "args": {
+        "text": "Step 1",
+        "track": "T1",
+        "start": "0s",
+        "duration": "3s",
+        "style": "news-title",
+        "clip_settings": "lower-third"
+      }
+    },
+    {
+      "op": "add_text_animation",
+      "args": { "track": "T1", "segment_ref": "label1", "role": "intro", "name": "typewriter", "duration": "0.5s" }
+    },
+    {
+      "id": "narration",
+      "op": "add_audio",
+      "args": { "file": "{{NARRATION_FILE}}", "track": "A1", "start": "0s", "duration": "auto", "volume": 1.0 }
+    },
+    {
+      "id": "bgm",
+      "op": "add_audio",
+      "args": { "file": "{{AUDIO_FILE}}", "track": "A2", "start": "0s", "duration": "auto", "volume": 0.2 }
+    },
+    {
+      "op": "add_audio_fade",
+      "args": { "track": "A2", "segment_ref": "bgm", "fade_in": "1s", "fade_out": "2s" }
+    },
+    {
+      "op": "import_srt",
+      "args": { "file": "{{SRT_FILE}}", "track": "T2", "style": "youtube-subtitle" }
+    }
+  ]
+}

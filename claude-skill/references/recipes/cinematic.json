@@ -1,0 +1,58 @@
+{
+  "name": "cinematic",
+  "description": "Cinematic look — film filter, vignette, slow zoom keyframes, moody color. v0.4 spec.",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "operations": [
+    {
+      "id": "main",
+      "op": "add_video",
+      "args": { "file": "{{VIDEO_FILE}}", "track": "V1", "start": "0s", "duration": "auto" }
+    },
+    {
+      "op": "add_filter",
+      "args": { "name": "film", "start": "0s", "duration": "auto", "intensity": 0.4 }
+    },
+    {
+      "op": "add_effect",
+      "args": { "name": "vignette", "start": "0s", "duration": "auto" }
+    },
+    {
+      "op": "add_color_adjust",
+      "args": {
+        "track": "V1",
+        "segment_ref": "main",
+        "brightness": -0.05,
+        "contrast": 0.15,
+        "saturation": -0.1,
+        "temperature": -0.05
+      }
+    },
+    {
+      "op": "add_video_animation",
+      "args": { "track": "V1", "segment_ref": "main", "role": "intro", "name": "fade_in", "duration": "1s" }
+    },
+    {
+      "op": "add_video_animation",
+      "args": { "track": "V1", "segment_ref": "main", "role": "outro", "name": "fade_out", "duration": "1s" }
+    },
+    {
+      "op": "add_keyframe",
+      "args": { "track": "V1", "segment_ref": "main", "property": "uniform_scale", "time": "0s", "value": 1.0 }
+    },
+    {
+      "op": "add_keyframe",
+      "args": { "track": "V1", "segment_ref": "main", "property": "uniform_scale", "time": "10s", "value": 1.08 }
+    },
+    {
+      "id": "bgm",
+      "op": "add_audio",
+      "args": { "file": "{{AUDIO_FILE}}", "track": "A1", "start": "0s", "duration": "auto", "volume": 0.4 }
+    },
+    {
+      "op": "add_audio_fade",
+      "args": { "track": "A1", "segment_ref": "bgm", "fade_in": "1.5s", "fade_out": "2.5s" }
+    }
+  ]
+}

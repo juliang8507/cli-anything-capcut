@@ -1,0 +1,150 @@
+{
+  "name": "social-short",
+  "description": "Portrait short-form (1080x1920) — vivid filter, animated text overlays, BGM. v0.4 spec.",
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "operations": [
+    {
+      "id": "main_video",
+      "op": "add_video",
+      "args": {
+        "file": "{{VIDEO_FILE}}",
+        "track": "V1",
+        "start": "0s",
+        "duration": "auto"
+      }
+    },
+    {
+      "op": "add_video_animation",
+      "args": {
+        "track": "V1",
+        "segment_ref": "main_video",
+        "role": "intro",
+        "name": "zoom_in",
+        "duration": "0.8s"
+      }
+    },
+    {
+      "op": "add_video_animation",
+      "args": {
+        "track": "V1",
+        "segment_ref": "main_video",
+        "role": "outro",
+        "name": "fade_out",
+        "duration": "0.8s"
+      }
+    },
+    {
+      "op": "add_filter",
+      "args": {
+        "name": "vivid",
+        "start": "0s",
+        "duration": "auto",
+        "intensity": 0.5
+      }
+    },
+    {
+      "id": "title_center",
+      "op": "add_text",
+      "args": {
+        "text": "{{TITLE_TEXT}}",
+        "track": "T1",
+        "start": "0.5s",
+        "duration": "3s",
+        "style": "minimal-caption",
+        "size": 9.0,
+        "bold": true,
+        "color": "255,255,255",
+        "letter_spacing": 3,
+        "clip_settings": "title-center"
+      }
+    },
+    {
+      "op": "add_text_animation",
+      "args": {
+        "track": "T1",
+        "segment_ref": "title_center",
+        "role": "intro",
+        "name": "fade_in",
+        "duration": "0.5s"
+      }
+    },
+    {
+      "op": "add_text_animation",
+      "args": {
+        "track": "T1",
+        "segment_ref": "title_center",
+        "role": "outro",
+        "name": "fade_out",
+        "duration": "0.4s"
+      }
+    },
+    {
+      "id": "lower_third",
+      "op": "add_text",
+      "args": {
+        "text": "{{LOWER_THIRD_TEXT}}",
+        "track": "T2",
+        "start": "4s",
+        "duration": "3s",
+        "size": 6.0,
+        "color": "255,255,255",
+        "clip_settings": "lower-third"
+      }
+    },
+    {
+      "op": "add_text_animation",
+      "args": {
+        "track": "T2",
+        "segment_ref": "lower_third",
+        "role": "intro",
+        "name": "fade_in",
+        "duration": "0.4s"
+      }
+    },
+    {
+      "id": "subtitle_bottom",
+      "op": "add_text",
+      "args": {
+        "text": "{{SUBTITLE_TEXT}}",
+        "track": "T3",
+        "start": "8s",
+        "duration": "3s",
+        "size": 5.5,
+        "color": "255,255,0",
+        "clip_settings": "subtitle-bottom"
+      }
+    },
+    {
+      "op": "add_text_animation",
+      "args": {
+        "track": "T3",
+        "segment_ref": "subtitle_bottom",
+        "role": "intro",
+        "name": "fade_in",
+        "duration": "0.3s"
+      }
+    },
+    {
+      "id": "bgm",
+      "op": "add_audio",
+      "args": {
+        "file": "{{AUDIO_FILE}}",
+        "track": "A1",
+        "start": "0s",
+        "duration": "auto",
+        "volume": 0.7
+      }
+    },
+    {
+      "op": "add_audio_fade",
+      "args": {
+        "track": "A1",
+        "segment_ref": "bgm",
+        "fade_in": "0.5s",
+        "fade_out": "1s"
+      }
+    }
+  ]
+}

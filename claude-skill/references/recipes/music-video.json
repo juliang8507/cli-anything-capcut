@@ -1,0 +1,54 @@
+{
+  "name": "music-video",
+  "description": "High-energy music video — cyberpunk filter, glitch/light-leak, zoom intro, rotation keyframes. v0.4 spec (chroma-key/speed-curve removed; do those in CapCut GUI).",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "operations": [
+    {
+      "id": "main",
+      "op": "add_video",
+      "args": { "file": "{{VIDEO_FILE}}", "track": "V1", "start": "0s", "duration": "auto" }
+    },
+    {
+      "op": "add_filter",
+      "args": { "name": "cyberpunk", "start": "0s", "duration": "auto", "intensity": 0.55 }
+    },
+    {
+      "op": "add_effect",
+      "args": { "name": "glitch", "start": "5s", "duration": "1s" }
+    },
+    {
+      "op": "add_effect",
+      "args": { "name": "light_leak", "start": "0s", "duration": "auto" }
+    },
+    {
+      "op": "add_video_animation",
+      "args": { "track": "V1", "segment_ref": "main", "role": "intro", "name": "blur_open", "duration": "0.8s" }
+    },
+    {
+      "op": "add_keyframe",
+      "args": { "track": "V1", "segment_ref": "main", "property": "rotation", "time": "0s", "value": 0 }
+    },
+    {
+      "op": "add_keyframe",
+      "args": { "track": "V1", "segment_ref": "main", "property": "rotation", "time": "30s", "value": 5 }
+    },
+    {
+      "op": "add_color_adjust",
+      "args": {
+        "track": "V1", "segment_ref": "main",
+        "brightness": 0.05, "contrast": 0.18, "saturation": 0.2, "temperature": -0.1
+      }
+    },
+    {
+      "id": "audio",
+      "op": "add_audio",
+      "args": { "file": "{{AUDIO_FILE}}", "track": "A1", "start": "0s", "duration": "auto", "volume": 0.95 }
+    },
+    {
+      "op": "add_audio_fade",
+      "args": { "track": "A1", "segment_ref": "audio", "fade_in": "0.5s", "fade_out": "2s" }
+    }
+  ]
+}
