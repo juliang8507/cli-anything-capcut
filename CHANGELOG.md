@@ -5,6 +5,39 @@
 > 실제로 반영되는지 확인해야** 완료로 적는다 — draft 에 필드가 있어도 CapCut 이 읽지 않으면
 > 사용자에게는 아무 일도 일어나지 않는다 (2026-09-01 폰트 실측으로 확인, docs/capcut-gui-verification.md).
 
+## 0.5.4 - 2026-09-21 (문서/메타데이터 정확성)
+
+### 수정 - pyproject 가 OS 를 잘못 알리고 있었다
+
+`Operating System :: OS Independent` 로 선언되어 있었다. 실제로는 Windows 전용이다.
+폰트 해석이 CapCut 캐시 / CapCut SystemFont / 사용자 Fonts / Windows Fonts 네 경로를
+스캔하고, 드래프트 폴더 감지와 GUI 렌더도 Windows 경로를 전제한다(그래서 CI 도 windows
+러너로 옮겼다). macOS/Linux 사용자가 이 메타데이터를 보고 설치하면 폰트 해석부터
+실패한다. `Microsoft :: Windows` 로 정정했다.
+
+### 수정 - README 가 없는 경로를 안내하고 있었다
+
+'옛 버전 스펙' 절이 `_recovered/capcut/` 와 `_recovered/live_sample_analysis.md` 를
+가리켰으나 두 경로 모두 공개 저장소에 없다(개발 저장소 전용). 해당 절을 제거하고,
+대신 실제로 있는 `scripts/` 설명을 넣었다.
+
+프로젝트 구조 목록도 낡아 있었다. commands 11 개(style, mask, asset, preset, plan,
+preview, render, render_headless, import_draft, review, session_utils)와
+core 3 개(style_registry, media_staging, auto_fix)가 빠져 있었다. 테스트 수도
+25 파일 / 396 tests 로 적혀 있던 것을 24 파일 / 398 tests 로 맞췄다.
+
+### 추가 - 영어 README
+
+공개 저장소의 문서가 전부 한국어였다. 스타를 누른 사용자 중 확인되는 위치가 독일과
+이탈리아인데 영어 문서가 하나도 없었다. `README.md` 를 영어로 두고 기존 한국어 문서를
+`README.ko.md` 로 옮겼다. 양쪽 상단에서 서로 링크한다.
+
+첫 화면 메시지도 바꿨다. 기존 첫 문장은 "드래프트를 CLI 로 스크립팅하는 하네스"라는
+구현 설명이었다. 이 도구가 실제로 파는 것은 "AI 에이전트가 CapCut 편집을 직접 조종한다"
+쪽이므로 그것을 먼저 쓰고, 데모 영상을 링크했다. CLI 와 MCP 비교는 접이식 절로 넣되
+인용한 벤치마크가 도구 방식 일반에 대한 외부 측정이며 이 프로젝트를 잰 수치가 아님을
+명시했다.
+
 ## 0.5.3 - 2026-09-21 (폰트 해석 + 공개 게이트)
 
 ### 수정 - 일반명 폰트가 한글 미지원 파일에 매칭되던 문제
