@@ -525,9 +525,14 @@ LOCAL_FONT_ALIASES: dict[str, str] = {}
 # PC 에 따라 결과가 달라진다.
 #
 # 일반명은 토큰 매칭에 맡기지 않고 아래 순서로만 해석한다.
+# 굵기 변형이 있는 폰트는 `_regular` 별칭을 먼저 둔다. 베이스 별칭은 파일
+# 스캔 순서(알파벳)에 따라 등록되므로 NanumMyeongjo 처럼 Bold 가 Regular 보다
+# 먼저 오는 폰트에서는 베이스가 Bold 를 가리킨다. 일반명은 기본 굵기를
+# 기대하는 이름이라 그대로 두면 의도치 않게 굵은 자막이 나온다.
 GENERIC_FONT_FALLBACKS: dict[str, tuple[str, ...]] = {
     "serif": (
         "noto_serif_kr",
+        "nanum_myeongjo_regular",
         "nanum_myeongjo",
         "gungsuh",
         "batang",
@@ -537,6 +542,7 @@ GENERIC_FONT_FALLBACKS: dict[str, tuple[str, ...]] = {
     "sans_serif": (
         "noto_sans_kr",
         "malgun_gothic",
+        "nanum_gothic_regular",
         "nanum_gothic",
         "gulim",
     ),
