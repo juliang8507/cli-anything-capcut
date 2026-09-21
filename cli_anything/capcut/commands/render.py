@@ -2,6 +2,9 @@
 
 **제약**:
     - Windows 전용 (uiautomation 의존)
+    - **중국판 剪映 전용**: upstream JianyingController 가 창 이름을 "剪映专业版" 으로
+      고정 매칭한다. 국제판 CapCut(창 이름 "CapCut")에서는 동작하지 않으므로
+      render-headless 를 쓸 것.
     - JianYing 6 및 이하 버전에서 안정적. 최신 CapCut international은 UI 구조가
       달라서 동작 안 할 수 있음
     - CapCut/JianYing이 이미 실행 중이어야 함 (해당 드래프트는 닫혀있어야 함)
@@ -98,10 +101,22 @@ def render_cmd(ctx, project_path, output_path, resolution, framerate, timeout, s
             timeout=timeout,
         )
     except Exception as e:
-        raise click.ClickException(
-            f"export 실패: {type(e).__name__}: {e}\n"
-            "CapCut이 실행 중이고 드래프트가 닫혀있는지, VIP 기능을 쓰지 않았는지 확인."
-        )
+        detail = f"export 실패: {type(e).__name__}: {e}"
+        if "剪映窗口未找到" in str(e):
+            # 실측(2026-09-21): pycapcut 의 JianyingController 는
+            # `control.Name != "剪映专业版"` 으로 창을 고른다. 국제판 CapCut 은
+            # 창 이름이 "CapCut" 이라 절대 매칭되지 않는다. 내부에서도 "导出"
+            # 같은 중국어 UI 텍스트를 찾으므로 창 이름만 맞춰도 동작하지 않는다.
+            detail += (
+                "\n\n이 명령은 pycapcut 의 JianyingController 로 GUI 를 제어하는데,\n"
+                "그 코드는 창 이름이 정확히 '剪映专业版'(중국판 젠잉 전문판)일 때만\n"
+                "동작합니다. 국제판 CapCut(창 이름 'CapCut')에서는 쓸 수 없습니다.\n\n"
+                "국제판이라면 CapCut 을 켜지 않고 ffmpeg 로 직접 렌더하세요:\n"
+                "  cli-anything-capcut render-headless -p <세션> -o out.mp4"
+            )
+        else:
+            detail += "\nCapCut이 실행 중이고 드래프트가 닫혀있는지, VIP 기능을 쓰지 않았는지 확인."
+        raise click.ClickException(detail)
 
     output_result(
         {

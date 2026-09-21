@@ -29,7 +29,7 @@ the **tool-exposure styles in general — they are not measurements of this proj
 
 </details>
 
-> **Version 0.5.6** · See [CHANGELOG.md](CHANGELOG.md).
+> **Version 0.5.7** · See [CHANGELOG.md](CHANGELOG.md).
 
 ## Requirements
 
@@ -167,13 +167,19 @@ cli-anything-capcut import-draft --from <draftFolder> -o out.session.json   # Ca
 ## Rendering
 
 ```bash
-# drives the CapCut GUI
+# ffmpeg only, without opening CapCut — use this
+cli-anything-capcut render-headless -p session.json -o output.mp4
+
+# drives the CapCut GUI (see the warning below)
 cli-anything-capcut render -p session.json \
     --resolution 1080P --framerate 30 -o output.mp4 --save-first
-
-# ffmpeg only, without opening CapCut
-cli-anything-capcut render-headless -p session.json -o output.mp4
 ```
+
+> **`render` only works on the Chinese build (剪映专业版).**
+> It delegates to `pycapcut`'s `JianyingController`, which selects the window with
+> `control.Name != "剪映专业版"` and then looks for Chinese UI labels such as `导出`.
+> The international CapCut names its window `CapCut`, so the match never succeeds —
+> verified on CapCut 9.4.0. Use `render-headless`, which needs no GUI at all.
 
 ## Interactive REPL
 

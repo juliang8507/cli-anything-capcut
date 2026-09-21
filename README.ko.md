@@ -27,7 +27,7 @@ CLI는 필요할 때만 호출되고 출력이 그대로 텍스트라 에이전�
 
 </details>
 
-> **현재 버전: 0.5.6** · Windows 전용
+> **현재 버전: 0.5.7** · Windows 전용
 > 변경 이력은 [CHANGELOG.md](CHANGELOG.md) 참조.
 
 ## 설치
@@ -169,13 +169,19 @@ cli-anything-capcut import-draft --from <드래프트폴더> -o out.session.json
 ## 렌더링
 
 ```bash
-# CapCut GUI 자동 제어
+# CapCut 안 켜고 ffmpeg 로 직접 — 이쪽을 쓰세요
+cli-anything-capcut render-headless -p session.json -o output.mp4
+
+# CapCut GUI 자동 제어 (아래 경고 참고)
 cli-anything-capcut render -p session.json \
     --resolution 1080P --framerate 30 -o output.mp4 --save-first
-
-# CapCut 안 켜고 ffmpeg 로 직접
-cli-anything-capcut render-headless -p session.json -o output.mp4
 ```
+
+> **`render` 는 중국판 剪映专业版 에서만 동작합니다.**
+> 이 명령은 `pycapcut` 의 `JianyingController` 에 위임하는데, 그 코드가 창을
+> `control.Name != "剪映专业版"` 으로 고르고 이후에도 `导出` 같은 중국어 UI 라벨을
+> 찾습니다. 국제판 CapCut 은 창 이름이 `CapCut` 이라 매칭 자체가 되지 않습니다
+> (CapCut 9.4.0 에서 실측). GUI 가 아예 필요 없는 `render-headless` 를 쓰세요.
 
 ## 인터랙티브 REPL
 
