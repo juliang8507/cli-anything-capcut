@@ -12,13 +12,33 @@ CapCut / JianYing(剪映) 드래프트를 CLI로 스크립팅하는 하네스. `
 ## 설치
 
 ```bash
-# upstream library.
-# PyPI 의 pycapcut 0.0.3 에는 text shadow 지원이 빠져 있어 (TextSegment(shadow=...)),
-# 내장 텍스트 스타일이 동작하지 않는다. upstream git 을 커밋 고정으로 설치한다.
-pip install "pycapcut @ git+https://github.com/GuanYixuan/pyCapCut.git@00c223aa246f955d741b17b703e10270b22ec75e"
+# 1) upstream library (pycapcut)
+#
+# PyPI 의 pycapcut 0.0.3 에는 TextSegment(shadow=...) 가 없다. 내장 텍스트
+# 스타일이 shadow 를 쓰므로 PyPI 버전만으로는 `text add --style ...` 이 실패한다.
+# upstream git 에는 들어가 있으나(2025-08-15, b846b95) 그 뒤로 PyPI 배포가 없다.
+#
+# 그리고 upstream setup.py 는 git 에 커밋되지 않은 pypi_readme.md 를 읽기 때문에
+# `pip install git+https://...` 가 FileNotFoundError 로 실패한다. clone 후 보완해서 설치한다.
+git clone https://github.com/GuanYixuan/pyCapCut.git
+cd pyCapCut
+git checkout 00c223aa246f955d741b17b703e10270b22ec75e
+cp README.md pypi_readme.md          # PowerShell: Copy-Item README.md pypi_readme.md
+pip install .
+cd ..
 
-pip install -e .           # this CLI
+# 2) this CLI
+pip install -e .
 ```
+
+> shadow 없이도 쓰겠다면 `pip install pycapcut` 로 충분하다. 단 내장 텍스트
+> 스타일(`text add --style`)은 동작하지 않는다.
+
+### 실행 환경
+
+Windows 전용이다. 폰트 해석은 CapCut 캐시 / CapCut SystemFont / 사용자 Fonts /
+Windows Fonts 네 위치를 스캔하고, 드래프트 폴더 감지와 GUI 렌더도 Windows 경로를
+전제한다. CI 도 같은 이유로 windows 러너에서 돈다.
 
 `ffmpeg/ffprobe`가 PATH에 있으면 미디어 길이 자동 감지 가능합니다.
 
