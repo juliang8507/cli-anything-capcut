@@ -11,6 +11,14 @@ are still checked through ``resolve_font`` below.
 
 from __future__ import annotations
 
+import sys as _sys
+
+# 이 스크립트는 폰트/별칭 오류를 한국어로 출력한다. 영어 로캘 Windows 의
+# 기본 코드페이지(cp1252)에서는 UnicodeEncodeError 로 죽으므로 UTF-8 로 고정한다.
+for _stream in (_sys.stdout, _sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+
 from datetime import datetime
 from difflib import SequenceMatcher
 from enum import Enum
