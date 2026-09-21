@@ -27,6 +27,10 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+# 이 파일 자신은 스캔하지 않는다. 금지 패턴을 문자열로 들고 있으므로 스캔하면
+# 반드시 자기 자신을 잡는다. (패턴을 난독화해 회피하면 규칙을 읽을 수 없게 된다.)
+SELF = Path(__file__).resolve()
+
 # (이름, 정규식, 설명) — 공개되면 안 되는 것.
 PATTERNS: tuple[tuple[str, str, str], ...] = (
     ("실명(한글)", r"기훈", "개인 실명"),
@@ -73,8 +77,11 @@ def tracked_files() -> list[Path]:
         path = REPO_ROOT / line
         if path.suffix.casefold() in SKIP_SUFFIXES:
             continue
-        if path.is_file():
-            files.append(path)
+        if not path.is_file():
+            continue
+        if path.resolve() == SELF:
+            continue
+        files.append(path)
     return files
 
 
