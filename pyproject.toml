@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cli-anything-capcut"
-version = "0.5.4"
+version = "0.5.5"
 description = "CLI harness for pyCapCut — scriptable CapCut / JianYing draft generation"
 readme = "README.md"
 license = { text = "MIT" }
@@ -32,7 +32,9 @@ dependencies = [
     "prompt-toolkit>=3.0.0,<4.0.0",
     # NOTE: PyPI 0.0.3 에는 TextSegment(shadow=...) 가 없다. 내장 텍스트 스타일을
     # 쓰려면 README 의 upstream git 설치 안내를 따를 것.
-    "pycapcut>=0.0.3,<1.0.0",
+    # 0.0.x 는 아직 불안정 버전대다. 실제로 0.0.3 과 upstream git 사이에
+    # TextSegment(shadow=...) 유무 차이가 있었다. 상한을 0.1.0 으로 둔다.
+    "pycapcut>=0.0.3,<0.1.0",
 ]
 
 [project.optional-dependencies]

@@ -20,6 +20,9 @@ from cli_anything.capcut.commands.helpers import (
 )
 from cli_anything.capcut.core import style_registry
 from cli_anything.capcut.core.alias_map import resolve_font
+
+# whisper 자동 자막 상한(초). 긴 오디오도 감당하되 무한 대기는 막는다.
+WHISPER_TIMEOUT_SEC = 3600
 from cli_anything.capcut.core.time_utils import parse_time_value, resolve_start_time
 
 
@@ -444,6 +447,14 @@ def text_auto_srt(ctx, project_path, audio, model, language, style_name, track,
             text=True,
             encoding="utf-8",
             shell=False,
+            # whisper 는 길이·모델에 따라 오래 걸리지만 무한은 아니어야 한다.
+            # 에이전트가 호출하는 도구라 멈추면 세션 전체가 함께 멈춘다.
+            timeout=WHISPER_TIMEOUT_SEC,
+        )
+    except subprocess.TimeoutExpired:
+        raise click.ClickException(
+            f"whisper timeout ({WHISPER_TIMEOUT_SEC}초 초과). 오디오가 너무 길거나 "
+            "더 작은 --model 이 필요할 수 있습니다."
         )
     except FileNotFoundError:
         raise click.ClickException(

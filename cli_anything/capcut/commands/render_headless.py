@@ -45,6 +45,10 @@ import click
 
 from cli_anything.capcut.commands.helpers import load_session, output_result
 from cli_anything.capcut.core.session import Session, SessionError
+
+# 렌더 상한(초). 긴 영상도 감당하되 무한 대기는 막는다 — 이 CLI 는 에이전트가
+# 호출하는 것을 전제하므로 멈춘 ffmpeg 하나가 세션 전체를 잡아버린다.
+RENDER_TIMEOUT_SEC = 3600
 from cli_anything.capcut.core.time_utils import format_duration, parse_time_value
 
 
@@ -1106,6 +1110,14 @@ def render_headless(
             text=True,
             encoding="utf-8",
             errors="replace",
+            # 렌더는 길 수 있으나 무한은 아니어야 한다. 이 CLI 는 에이전트가
+            # 호출하는 것을 전제하므로, 멈춘 ffmpeg 하나가 세션 전체를 잡는다.
+            timeout=RENDER_TIMEOUT_SEC,
+        )
+    except subprocess.TimeoutExpired:
+        raise click.ClickException(
+            f"ffmpeg timeout ({RENDER_TIMEOUT_SEC}초 초과). 입력이 너무 길거나 "
+            "ffmpeg 가 응답하지 않습니다."
         )
     except FileNotFoundError as e:
         raise click.ClickException(f"ffmpeg 실행 실패: {e}") from e

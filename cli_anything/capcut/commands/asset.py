@@ -190,7 +190,13 @@ def cover_from_frame(ctx, project_path, file, ts):
         "ffmpeg", "-y", "-ss", f"{seconds}", "-i", str(file),
         "-frames:v", "1", "-q:v", "2", str(cover_out),
     ]
-    proc = subprocess.run(cmd, capture_output=True, text=True)
+    # 단일 프레임 추출이라 길어질 이유가 없다. 손상된 입력이나 응답 없는
+    # 네트워크 경로에서 ffmpeg 가 멈추면 이 CLI 를 호출한 에이전트까지 함께
+    # 무한 대기하므로 상한을 둔다.
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    except subprocess.TimeoutExpired:
+        raise click.ClickException("ffmpeg timeout (커버 추출 120초 초과)")
     if proc.returncode != 0:
         raise click.ClickException(f"ffmpeg 실패:\n{proc.stderr[-500:]}")
     output_result({"status": "cover_saved", "path": str(cover_out)}, ctx.obj["json"])

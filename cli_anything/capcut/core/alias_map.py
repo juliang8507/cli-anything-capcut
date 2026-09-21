@@ -285,6 +285,25 @@ def _font_scan_locations() -> tuple[Path, Path, Path, Path]:
     )
 
 
+# CapCut 캐시(`Cache/effect`)는 `<resource_id>/<hash>/<파일>` 구조라 폰트가 깊이 3 에
+# 놓인다. 그런데 이 디렉토리에는 폰트 말고도 모든 다운로드 에셋이 들어가서 실측 기준
+# 26,000 개가 넘는다. rglob 전수 스캔은 거기서만 2.8 초를 쓰고 폰트는 5 개를 찾는다.
+# 폰트가 실제로 놓이는 깊이만 본다(여유로 1~4). 다른 세 경로는 얕아서 rglob 그대로 둔다.
+_CACHE_FONT_GLOBS: tuple[str, ...] = ("*", "*/*", "*/*/*", "*/*/*/*")
+
+
+def _font_files_at_depths(directory: Path, patterns: tuple[str, ...]) -> list[Path]:
+    """깊이를 제한해 폰트 파일을 찾는다. 같은 파일이 여러 패턴에 걸려도 한 번만."""
+    if not directory.is_dir():
+        return []
+    found: dict[str, Path] = {}
+    for pattern in patterns:
+        for path in directory.glob(pattern):
+            if path.is_file() and path.suffix.casefold() in _FONT_SUFFIXES:
+                found.setdefault(str(path).casefold(), path)
+    return sorted(found.values(), key=lambda path: str(path).casefold())
+
+
 def _font_files(directory: Path) -> list[Path]:
     if not directory.is_dir():
         return []
@@ -591,7 +610,7 @@ def _discover_available_fonts_at(
         )
 
     # 1) 다운로드한 CapCut 폰트. effect 바로 아래 폴더명이 resource_id다.
-    for path in _font_files(cache_dir):
+    for path in _font_files_at_depths(cache_dir, _CACHE_FONT_GLOBS):
         try:
             relative_parts = path.relative_to(cache_dir).parts
         except ValueError:
