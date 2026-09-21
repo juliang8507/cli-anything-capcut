@@ -53,7 +53,8 @@ CI runs on a Windows runner for the same reason.
 # It exists upstream (commit b846b95, 2025-08-15) but there has been no release since.
 #
 # Also, upstream setup.py reads pypi_readme.md, which is not committed to git, so
-# `pip install git+https://...` fails with FileNotFoundError. Clone and patch it:
+# `pip install git+https://...` fails with FileNotFoundError. Clone and patch it.
+# (reported upstream: GuanYixuan/pyCapCut#16)
 git clone https://github.com/GuanYixuan/pyCapCut.git
 cd pyCapCut
 git checkout 00c223aa246f955d741b17b703e10270b22ec75e
@@ -179,7 +180,8 @@ cli-anything-capcut render -p session.json \
 > It delegates to `pycapcut`'s `JianyingController`, which selects the window with
 > `control.Name != "剪映专业版"` and then looks for Chinese UI labels such as `导出`.
 > The international CapCut names its window `CapCut`, so the match never succeeds —
-> verified on CapCut 9.4.0. Use `render-headless`, which needs no GUI at all.
+> verified on CapCut 9.4.0 (reported upstream: GuanYixuan/pyCapCut#17).
+> Use `render-headless`, which needs no GUI at all.
 
 ## Interactive REPL
 

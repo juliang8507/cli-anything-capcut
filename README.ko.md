@@ -41,6 +41,7 @@ CLI는 필요할 때만 호출되고 출력이 그대로 텍스트라 에이전�
 #
 # 그리고 upstream setup.py 는 git 에 커밋되지 않은 pypi_readme.md 를 읽기 때문에
 # `pip install git+https://...` 가 FileNotFoundError 로 실패한다. clone 후 보완해서 설치한다.
+# (업스트림에 보고함: GuanYixuan/pyCapCut#16)
 git clone https://github.com/GuanYixuan/pyCapCut.git
 cd pyCapCut
 git checkout 00c223aa246f955d741b17b703e10270b22ec75e
@@ -181,7 +182,8 @@ cli-anything-capcut render -p session.json \
 > 이 명령은 `pycapcut` 의 `JianyingController` 에 위임하는데, 그 코드가 창을
 > `control.Name != "剪映专业版"` 으로 고르고 이후에도 `导出` 같은 중국어 UI 라벨을
 > 찾습니다. 국제판 CapCut 은 창 이름이 `CapCut` 이라 매칭 자체가 되지 않습니다
-> (CapCut 9.4.0 에서 실측). GUI 가 아예 필요 없는 `render-headless` 를 쓰세요.
+> (CapCut 9.4.0 에서 실측, 업스트림에 보고함: GuanYixuan/pyCapCut#17).
+> GUI 가 아예 필요 없는 `render-headless` 를 쓰세요.
 
 ## 인터랙티브 REPL
 
