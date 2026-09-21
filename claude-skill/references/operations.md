@@ -49,7 +49,7 @@ CLI 명령은 *훨씬* 단순한 셋입니다. 옛 v0.3 combo (`add-with-*`)와 
 | Op | CLI | 비고 |
 |----|-----|------|
 | `import_srt` | `srt import` | `--style` 프리셋 또는 `--style-json` |
-| (매크로) | `text auto-srt` | whisper CLI subprocess → SRT → srt import 재호출 (v0.5.1). 옵션: `--audio`, `--model {tiny\|base\|small\|medium\|large}`, `--language ko`, `--word-level/--segment-level`, `--initial-prompt`, `--output-dir`, `--keep-srt`. 한국어 도메인 전문 용어는 initial-prompt에 `"제품명 전문용어 예시"` 같은 힌트 권장 |
+| (매크로) | `text auto-srt` | whisper CLI subprocess → SRT → srt import 재호출 (v0.5.1). 옵션: `--audio`, `--model {tiny\|base\|small\|medium\|large}`, `--language ko`, `--word-level/--segment-level`, `--initial-prompt`, `--output-dir`, `--keep-srt`. 한국어 호텔 도메인은 initial-prompt에 `"호텔 디럭스 스위트 트윈"` 같은 힌트 권장 |
 | (없음) | `session find-replace-media` | regex/literal로 미디어 경로 일괄 치환 |
 | (없음) | `merge-session --other X --offset auto` | 다른 세션 합치기 |
 | (없음) | `diff-session --other X` | op 비교 |

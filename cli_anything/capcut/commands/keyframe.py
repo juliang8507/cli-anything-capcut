@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import click
 
-from cli_anything.capcut.commands.helpers import load_session, output_result
+from cli_anything.capcut.commands.helpers import (
+    append_validated_operation,
+    load_session,
+    output_result,
+)
 
 PROPERTIES = [
     "alpha",
@@ -26,7 +30,7 @@ def keyframe_group():
 @keyframe_group.command("add", help="세그먼트의 특정 속성 키프레임 추가")
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--track", required=True)
-@click.option("--segment-ref", required=True)
+@click.option("--segment-ref", required=True, help="세그먼트 참조 (op ID)")
 @click.option("--property", "prop", required=True,
               type=click.Choice(PROPERTIES))
 @click.option("--time", required=True, help='세그먼트 내 상대 시각 (예: "0s", "1s", "500ms")')
@@ -34,7 +38,8 @@ def keyframe_group():
 @click.pass_context
 def keyframe_add(ctx, project_path, track, segment_ref, prop, time, value):
     session = load_session(project_path)
-    result = session.append_operation(
+    result = append_validated_operation(
+        session,
         "add_keyframe",
         {"track": track, "segment_ref": segment_ref,
          "property": prop, "time": time, "value": value},

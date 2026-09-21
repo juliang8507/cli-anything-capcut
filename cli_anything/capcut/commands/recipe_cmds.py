@@ -7,7 +7,11 @@ from pathlib import Path
 
 import click
 
-from cli_anything.capcut.commands.helpers import load_session, output_result
+from cli_anything.capcut.commands.helpers import (
+    load_session,
+    output_result,
+    validate_segment_ref,
+)
 from cli_anything.capcut.core.recipe import (
     RecipeError,
     apply_recipe,
@@ -89,9 +93,39 @@ def export_script_cmd(ctx, project_path, output, cli_cmd):
 @click.pass_context
 def edit_op_cmd(ctx, project_path, index, args_json):
     from cli_anything.capcut.commands.helpers import parse_json_option
+    from cli_anything.capcut.core.op_handlers import derive_handler_arg_names
 
     session = load_session(project_path)
     new_args = parse_json_option(args_json, "args") or {}
+    operations = session.data.get("operations", [])
+    if not 0 <= index < len(operations):
+        raise click.ClickException(
+            f"op 인덱스 {index}가 범위를 벗어났습니다 (0~{len(operations) - 1})."
+        )
+
+    operation = operations[index]
+    op_name = operation.get("op")
+    allowed_args = derive_handler_arg_names(op_name)
+    if allowed_args is not None:
+        invalid_args = sorted(set(new_args) - allowed_args)
+        if invalid_args:
+            allowed_text = ", ".join(sorted(allowed_args)) or "(없음)"
+            raise click.ClickException(
+                f"{op_name} 핸들러가 읽지 않는 args입니다: "
+                f"{', '.join(invalid_args)}. 허용 args: {allowed_text}"
+            )
+
+    merged_args = {**(operation.get("args") or {}), **new_args}
+    if (
+        merged_args.get("segment_ref") is not None
+        and ("segment_ref" in new_args or "track" in new_args)
+    ):
+        validate_segment_ref(
+            session,
+            merged_args["segment_ref"],
+            merged_args.get("track"),
+        )
+
     result = session.edit_operation(index, new_args)
     output_result(result, ctx.obj["json"])
 

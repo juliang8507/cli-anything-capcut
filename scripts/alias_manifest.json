@@ -1,0 +1,918 @@
+{
+  "pycapcut_version": "0.0.3",
+  "scope_ko": "FONT_ALIASES를 제외한 수정 전 죽은 alias 107건",
+  "total": 107,
+  "counts": {
+    "remapped": 49,
+    "removed": 27,
+    "kept": 0,
+    "deferred": 31
+  },
+  "entries": [
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "fade_in",
+      "old_target": "渐显",
+      "disposition": "removed",
+      "reason_ko": "전환 enum에 방향이 명확한 일반 fade-in 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "fade_out",
+      "old_target": "渐隐",
+      "disposition": "removed",
+      "reason_ko": "전환 enum에 방향이 명확한 일반 fade-out 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "black_flash",
+      "old_target": "黑场",
+      "new_target": "闪黑",
+      "disposition": "remapped",
+      "reason_ko": "검정 플래시와 직접 대응하는 실재 멤버 '闪黑'으로 교체."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "black",
+      "old_target": "黑场",
+      "disposition": "deferred",
+      "reason_ko": "'闪黑', '黑色块', '黑色烟雾'가 각각 다른 검정 전환이라 기본값을 정할 근거가 부족해 승인 전 제외."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "zoom_in",
+      "old_target": "放大",
+      "new_target": "推近",
+      "disposition": "remapped",
+      "reason_ko": "화면을 당겨 확대하는 zoom-in 의미와 직접 대응하는 실재 멤버 '推近'으로 교체."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "zoom_out",
+      "old_target": "缩小",
+      "new_target": "拉远",
+      "disposition": "remapped",
+      "reason_ko": "화면을 멀리 빼는 zoom-out 의미와 직접 대응하는 실재 멤버 '拉远'으로 교체."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "wipe_left",
+      "old_target": "左擦除",
+      "new_target": "向左擦除",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向左擦除'로 교체."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "wipe_right",
+      "old_target": "右擦除",
+      "new_target": "向右擦除",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向右擦除'로 교체."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "wipe_up",
+      "old_target": "上擦除",
+      "new_target": "向上擦除",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向上擦除'로 교체."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "wipe_down",
+      "old_target": "下擦除",
+      "new_target": "向下擦除",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向下擦除'로 교체."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "rotate",
+      "old_target": "旋转",
+      "new_target": "旋转转场",
+      "disposition": "remapped",
+      "reason_ko": "일반 회전 전환과 직접 대응하는 실재 멤버 '旋转转场'으로 교체."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "rotate_3d",
+      "old_target": "3D旋转",
+      "new_target": "三维旋转",
+      "disposition": "remapped",
+      "reason_ko": "3D 회전과 동의인 실재 멤버 '三维旋转'으로 교체."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "blur",
+      "old_target": "模糊",
+      "new_target": "转场_模糊",
+      "disposition": "remapped",
+      "reason_ko": "일반 블러 전환과 직접 대응하는 실재 멤버 '转场_模糊'로 교체."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "gaussian_blur",
+      "old_target": "模糊",
+      "disposition": "deferred",
+      "reason_ko": "블러 계열 멤버는 많지만 Gaussian임을 나타내는 멤버가 없어 승인 전 제외."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "motion_blur",
+      "old_target": "动感模糊",
+      "disposition": "deferred",
+      "reason_ko": "'模糊横移', '横向模糊', '竖向模糊' 등 방향별 후보만 있어 승인 전 제외."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "radial_blur",
+      "old_target": "径向模糊",
+      "disposition": "removed",
+      "reason_ko": "방사형 블러와 의미가 대응하는 실재 전환 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "center_split",
+      "old_target": "中间分割",
+      "new_target": "居中分割",
+      "disposition": "remapped",
+      "reason_ko": "중앙 분할과 동의인 실재 멤버 '居中分割'로 교체."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "split_h",
+      "old_target": "水平分割",
+      "new_target": "横向分割",
+      "disposition": "remapped",
+      "reason_ko": "수평 분할과 동의인 실재 멤버 '横向分割'로 교체."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "split_v",
+      "old_target": "垂直分割",
+      "new_target": "竖向分割",
+      "disposition": "remapped",
+      "reason_ko": "수직 분할과 동의인 실재 멤버 '竖向分割'로 교체."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "three_split",
+      "old_target": "三分屏",
+      "disposition": "deferred",
+      "reason_ko": "'Horizontal_Triptych', '三屏放大', '三重断裂'가 서로 다른 3분할 변형이라 승인 전 제외."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "heartbeat",
+      "old_target": "心跳",
+      "disposition": "deferred",
+      "reason_ko": "'心动缩放', '心脏爆裂'은 추가 동작이 포함된 변형이라 승인 전 제외."
+    },
+    {
+      "alias_dict": "TRANSITION_ALIASES",
+      "enum_class": "TransitionType",
+      "alias": "pixelate",
+      "old_target": "像素化",
+      "disposition": "deferred",
+      "reason_ko": "'俏皮像素化效果', '大像素', '像素渐隐'이 서로 다른 픽셀 변형이라 승인 전 제외."
+    },
+    {
+      "alias_dict": "FILTER_ALIASES",
+      "enum_class": "FilterType",
+      "alias": "sunrise",
+      "old_target": "日出",
+      "disposition": "removed",
+      "reason_ko": "일출과 직접 대응하는 실재 필터 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "FILTER_ALIASES",
+      "enum_class": "FilterType",
+      "alias": "classic",
+      "old_target": "经典",
+      "disposition": "deferred",
+      "reason_ko": "'经典电影'만 존재해 일반 classic과 영화 스타일 중 어느 의미인지 승인 필요."
+    },
+    {
+      "alias_dict": "FILTER_ALIASES",
+      "enum_class": "FilterType",
+      "alias": "cinematic",
+      "old_target": "电影感",
+      "disposition": "deferred",
+      "reason_ko": "'暗调电影', '电影光效', '经典电影'이 서로 다른 영화 스타일이라 승인 전 제외."
+    },
+    {
+      "alias_dict": "FILTER_ALIASES",
+      "enum_class": "FilterType",
+      "alias": "vintage",
+      "old_target": "复古",
+      "disposition": "deferred",
+      "reason_ko": "'复古1'~'复古4'와 다수 테마 변형 중 기본값을 정할 근거가 없어 승인 전 제외."
+    },
+    {
+      "alias_dict": "FILTER_ALIASES",
+      "enum_class": "FilterType",
+      "alias": "film",
+      "old_target": "胶片",
+      "disposition": "deferred",
+      "reason_ko": "'Nikon胶片', '复古胶片', '富士胶片', '蓝绿胶片'이 서로 다른 필름 룩이라 승인 전 제외."
+    },
+    {
+      "alias_dict": "FILTER_ALIASES",
+      "enum_class": "FilterType",
+      "alias": "film_grain",
+      "old_target": "胶片颗粒",
+      "new_target": "Soft_Grain",
+      "disposition": "remapped",
+      "reason_ko": "필름 그레인 의미와 직접 대응하는 실재 영문 멤버 'Soft_Grain'으로 교체."
+    },
+    {
+      "alias_dict": "FILTER_ALIASES",
+      "enum_class": "FilterType",
+      "alias": "bw",
+      "old_target": "黑白",
+      "disposition": "deferred",
+      "reason_ko": "'BW_2', 'BW_3' 및 여러 흑백 변형 중 일반 bw의 기본값을 정할 근거가 없어 승인 전 제외."
+    },
+    {
+      "alias_dict": "FILTER_ALIASES",
+      "enum_class": "FilterType",
+      "alias": "black_white",
+      "old_target": "黑白",
+      "disposition": "deferred",
+      "reason_ko": "'BW_2', 'BW_3' 및 여러 흑백 변형 중 일반 black-white의 기본값을 정할 근거가 없어 승인 전 제외."
+    },
+    {
+      "alias_dict": "FILTER_ALIASES",
+      "enum_class": "FilterType",
+      "alias": "grayscale",
+      "old_target": "灰度",
+      "disposition": "deferred",
+      "reason_ko": "'灰调', '高级灰', '轻冷灰调'은 회색 톤이지 완전한 grayscale인지 확정할 수 없어 승인 전 제외."
+    },
+    {
+      "alias_dict": "FILTER_ALIASES",
+      "enum_class": "FilterType",
+      "alias": "blue_gold",
+      "old_target": "蓝金",
+      "disposition": "removed",
+      "reason_ko": "파랑-금색 조합과 직접 대응하는 실재 필터 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "FILTER_ALIASES",
+      "enum_class": "FilterType",
+      "alias": "portrait",
+      "old_target": "人像",
+      "disposition": "removed",
+      "reason_ko": "일반 인물 필터와 직접 대응하는 실재 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "FILTER_ALIASES",
+      "enum_class": "FilterType",
+      "alias": "landscape",
+      "old_target": "风景",
+      "disposition": "deferred",
+      "reason_ko": "'风景提亮_北欧列车'만 존재하며 특정 밝기/테마가 추가되어 승인 전 제외."
+    },
+    {
+      "alias_dict": "FILTER_ALIASES",
+      "enum_class": "FilterType",
+      "alias": "food",
+      "old_target": "美食",
+      "disposition": "deferred",
+      "reason_ko": "'美食1', '美食2', '高清美食' 중 기본값을 정할 근거가 없어 승인 전 제외."
+    },
+    {
+      "alias_dict": "FILTER_ALIASES",
+      "enum_class": "FilterType",
+      "alias": "bright",
+      "old_target": "明亮",
+      "new_target": "提亮",
+      "disposition": "remapped",
+      "reason_ko": "밝게 만드는 필터 의미와 직접 대응하는 실재 멤버 '提亮'로 교체."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "lens_flare",
+      "old_target": "镜头光晕",
+      "disposition": "deferred",
+      "reason_ko": "'光晕', '星星光晕', '光球镜头'은 lens flare와 범위나 형태가 달라 승인 전 제외."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "light_leak",
+      "old_target": "漏光",
+      "disposition": "deferred",
+      "reason_ko": "'胶片漏光', '散景漏光', '漏光噪点' 등 여러 누광 변형 중 기본값을 정할 근거가 없어 승인 전 제외."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "light_glitch",
+      "old_target": "光故障",
+      "disposition": "deferred",
+      "reason_ko": "'故障闪爆', '故障镜头', '幻彩故障'이 서로 다른 빛/글리치 조합이라 승인 전 제외."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "pixelate",
+      "old_target": "像素化",
+      "disposition": "deferred",
+      "reason_ko": "'像素画', '像素屏幕', '低像素光效' 등이 서로 다른 픽셀 효과라 승인 전 제외."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "gaussian_blur",
+      "old_target": "高斯模糊",
+      "new_target": "模糊",
+      "disposition": "remapped",
+      "reason_ko": "Gaussian blur의 상위 의미를 보존하는 실재 일반 블러 멤버 '模糊'로 교체."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "radial_blur",
+      "old_target": "径向模糊",
+      "disposition": "removed",
+      "reason_ko": "방사형 블러와 의미가 대응하는 실재 씬 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "watercolor",
+      "old_target": "水彩",
+      "disposition": "deferred",
+      "reason_ko": "'水彩游戏'만 존재하며 게임 스타일이 추가된 변형이라 승인 전 제외."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "sketch",
+      "old_target": "素描",
+      "disposition": "deferred",
+      "reason_ko": "'粉笔素描', '黑白线描', '荧光线描'이 서로 다른 스케치 매체라 승인 전 제외."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "cartoon",
+      "old_target": "卡通",
+      "disposition": "removed",
+      "reason_ko": "일반 cartoon과 직접 대응하는 실재 씬 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "retro",
+      "old_target": "复古",
+      "disposition": "deferred",
+      "reason_ko": "'复古_DV', '复古电视', '复古胶片' 등 다수의 서로 다른 복고 변형이 있어 승인 전 제외."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "old_film",
+      "old_target": "老电影",
+      "new_target": "老电影_II",
+      "disposition": "remapped",
+      "reason_ko": "동일한 old-film 계열의 실재 멤버 '老电影_II'로 교체."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "shake_h",
+      "old_target": "水平抖动",
+      "disposition": "removed",
+      "reason_ko": "수평 흔들림과 직접 대응하는 실재 씬 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "shake_horizontal",
+      "old_target": "水平抖动",
+      "disposition": "removed",
+      "reason_ko": "수평 흔들림과 직접 대응하는 실재 씬 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "shake_v",
+      "old_target": "垂直抖动",
+      "new_target": "纵向抖动",
+      "disposition": "remapped",
+      "reason_ko": "수직 흔들림과 동의인 실재 멤버 '纵向抖动'으로 교체."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "shake_vertical",
+      "old_target": "垂直抖动",
+      "new_target": "纵向抖动",
+      "disposition": "remapped",
+      "reason_ko": "수직 흔들림과 동의인 실재 멤버 '纵向抖动'으로 교체."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "neon",
+      "old_target": "霓虹",
+      "disposition": "deferred",
+      "reason_ko": "'霓虹印记', '霓虹彩边', '霓虹摇摆' 등 서로 다른 네온 효과 중 기본값을 정할 근거가 없어 승인 전 제외."
+    },
+    {
+      "alias_dict": "VIDEO_SCENE_EFFECT_ALIASES",
+      "enum_class": "VideoSceneEffectType",
+      "alias": "neon_glow",
+      "old_target": "霓虹光",
+      "new_target": "霓虹光线",
+      "disposition": "remapped",
+      "reason_ko": "네온 빛/광선 의미와 직접 대응하는 실재 멤버 '霓虹光线'으로 교체."
+    },
+    {
+      "alias_dict": "VIDEO_CHARACTER_EFFECT_ALIASES",
+      "enum_class": "VideoCharacterEffectType",
+      "alias": "face_reshape",
+      "old_target": "瘦脸",
+      "disposition": "removed",
+      "reason_ko": "실제 enum은 창작 캐릭터 효과이며 얼굴 윤곽 보정 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_CHARACTER_EFFECT_ALIASES",
+      "enum_class": "VideoCharacterEffectType",
+      "alias": "slim_face",
+      "old_target": "瘦脸",
+      "disposition": "removed",
+      "reason_ko": "실제 enum은 창작 캐릭터 효과이며 얼굴 축소 보정 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_CHARACTER_EFFECT_ALIASES",
+      "enum_class": "VideoCharacterEffectType",
+      "alias": "chin_slim",
+      "old_target": "下巴塑形",
+      "disposition": "removed",
+      "reason_ko": "턱 성형/보정과 대응하는 실재 캐릭터 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_CHARACTER_EFFECT_ALIASES",
+      "enum_class": "VideoCharacterEffectType",
+      "alias": "nose_slim",
+      "old_target": "鼻子塑形",
+      "disposition": "removed",
+      "reason_ko": "코 성형/보정과 대응하는 실재 캐릭터 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_CHARACTER_EFFECT_ALIASES",
+      "enum_class": "VideoCharacterEffectType",
+      "alias": "big_eyes",
+      "old_target": "大眼",
+      "disposition": "removed",
+      "reason_ko": "눈 확대 보정과 대응하는 실재 캐릭터 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_CHARACTER_EFFECT_ALIASES",
+      "enum_class": "VideoCharacterEffectType",
+      "alias": "eye_bright",
+      "old_target": "亮眼",
+      "disposition": "removed",
+      "reason_ko": "'眼神光'은 창작 광원 효과로 눈 밝기 보정과 의미가 달라 제거."
+    },
+    {
+      "alias_dict": "VIDEO_CHARACTER_EFFECT_ALIASES",
+      "enum_class": "VideoCharacterEffectType",
+      "alias": "teeth_whiten",
+      "old_target": "美白牙齿",
+      "disposition": "removed",
+      "reason_ko": "치아 미백과 대응하는 실재 캐릭터 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_CHARACTER_EFFECT_ALIASES",
+      "enum_class": "VideoCharacterEffectType",
+      "alias": "smooth_skin",
+      "old_target": "磨皮",
+      "disposition": "removed",
+      "reason_ko": "피부 보정과 대응하는 실재 캐릭터 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_CHARACTER_EFFECT_ALIASES",
+      "enum_class": "VideoCharacterEffectType",
+      "alias": "lip_color",
+      "old_target": "口红",
+      "disposition": "removed",
+      "reason_ko": "립 컬러 보정과 대응하는 실재 캐릭터 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_CHARACTER_EFFECT_ALIASES",
+      "enum_class": "VideoCharacterEffectType",
+      "alias": "eyebrow",
+      "old_target": "眉毛",
+      "disposition": "removed",
+      "reason_ko": "눈썹 보정과 대응하는 실재 캐릭터 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_CHARACTER_EFFECT_ALIASES",
+      "enum_class": "VideoCharacterEffectType",
+      "alias": "eyeliner",
+      "old_target": "眼线",
+      "disposition": "removed",
+      "reason_ko": "아이라인 보정과 대응하는 실재 캐릭터 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_CHARACTER_EFFECT_ALIASES",
+      "enum_class": "VideoCharacterEffectType",
+      "alias": "eye_shadow",
+      "old_target": "眼影",
+      "disposition": "removed",
+      "reason_ko": "아이섀도 보정과 대응하는 실재 캐릭터 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_CHARACTER_EFFECT_ALIASES",
+      "enum_class": "VideoCharacterEffectType",
+      "alias": "contour",
+      "old_target": "修容",
+      "disposition": "removed",
+      "reason_ko": "윤곽 메이크업 보정과 대응하는 실재 캐릭터 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "VIDEO_CHARACTER_EFFECT_ALIASES",
+      "enum_class": "VideoCharacterEffectType",
+      "alias": "forehead",
+      "old_target": "额头",
+      "disposition": "removed",
+      "reason_ko": "이마 보정과 대응하는 실재 캐릭터 효과 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "INTRO_ALIASES",
+      "enum_class": "IntroType",
+      "alias": "rotate_in",
+      "old_target": "旋入",
+      "new_target": "旋转进入",
+      "disposition": "remapped",
+      "reason_ko": "회전하며 들어오는 의미와 직접 대응하는 실재 멤버 '旋转进入'으로 교체."
+    },
+    {
+      "alias_dict": "INTRO_ALIASES",
+      "enum_class": "IntroType",
+      "alias": "bounce_in",
+      "old_target": "弹性进入",
+      "disposition": "deferred",
+      "reason_ko": "'弹出', '叠加弹动', '三重弹出'이 서로 다른 탄성 입장 효과라 승인 전 제외."
+    },
+    {
+      "alias_dict": "INTRO_ALIASES",
+      "enum_class": "IntroType",
+      "alias": "spin",
+      "old_target": "旋入",
+      "new_target": "旋转进入",
+      "disposition": "remapped",
+      "reason_ko": "회전하며 들어오는 spin 의미와 직접 대응하는 실재 멤버 '旋转进入'으로 교체."
+    },
+    {
+      "alias_dict": "INTRO_ALIASES",
+      "enum_class": "IntroType",
+      "alias": "drop_in",
+      "old_target": "掉落",
+      "new_target": "Drop_down",
+      "disposition": "remapped",
+      "reason_ko": "아래로 떨어져 들어오는 의미와 직접 대응하는 실재 멤버 'Drop_down'으로 교체."
+    },
+    {
+      "alias_dict": "INTRO_ALIASES",
+      "enum_class": "IntroType",
+      "alias": "blur_open",
+      "old_target": "模糊展开",
+      "new_target": "模糊渐显",
+      "disposition": "remapped",
+      "reason_ko": "블러가 걷히며 나타나는 의미와 직접 대응하는 실재 멤버 '模糊渐显'으로 교체."
+    },
+    {
+      "alias_dict": "OUTRO_ALIASES",
+      "enum_class": "OutroType",
+      "alias": "fade_out",
+      "old_target": "碎片淡出",
+      "new_target": "渐隐",
+      "disposition": "remapped",
+      "reason_ko": "일반 fade-out과 직접 대응하는 실재 멤버 '渐隐'으로 교체."
+    },
+    {
+      "alias_dict": "OUTRO_ALIASES",
+      "enum_class": "OutroType",
+      "alias": "zoom_in",
+      "old_target": "动感放大",
+      "new_target": "放大",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '放大'로 교체."
+    },
+    {
+      "alias_dict": "OUTRO_ALIASES",
+      "enum_class": "OutroType",
+      "alias": "zoom_out",
+      "old_target": "动感缩小",
+      "new_target": "缩小",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '缩小'로 교체."
+    },
+    {
+      "alias_dict": "OUTRO_ALIASES",
+      "enum_class": "OutroType",
+      "alias": "slide_up",
+      "old_target": "向上滑出",
+      "new_target": "向上滑动",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向上滑动'로 교체."
+    },
+    {
+      "alias_dict": "OUTRO_ALIASES",
+      "enum_class": "OutroType",
+      "alias": "slide_down",
+      "old_target": "向下滑出",
+      "new_target": "向下滑动",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向下滑动'로 교체."
+    },
+    {
+      "alias_dict": "OUTRO_ALIASES",
+      "enum_class": "OutroType",
+      "alias": "slide_left",
+      "old_target": "向左滑出",
+      "new_target": "向左滑动",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向左滑动'로 교체."
+    },
+    {
+      "alias_dict": "OUTRO_ALIASES",
+      "enum_class": "OutroType",
+      "alias": "slide_right",
+      "old_target": "向右滑出",
+      "new_target": "向右滑动",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向右滑动'로 교체."
+    },
+    {
+      "alias_dict": "OUTRO_ALIASES",
+      "enum_class": "OutroType",
+      "alias": "rotate_out",
+      "old_target": "旋出",
+      "new_target": "旋转出",
+      "disposition": "remapped",
+      "reason_ko": "회전하며 나가는 의미와 직접 대응하는 실재 멤버 '旋转出'으로 교체."
+    },
+    {
+      "alias_dict": "OUTRO_ALIASES",
+      "enum_class": "OutroType",
+      "alias": "blur_out",
+      "old_target": "模糊收束",
+      "new_target": "模糊渐隐",
+      "disposition": "remapped",
+      "reason_ko": "블러와 함께 사라지는 의미와 직접 대응하는 실재 멤버 '模糊渐隐'으로 교체."
+    },
+    {
+      "alias_dict": "GROUP_ANIMATION_ALIASES",
+      "enum_class": "GroupAnimationType",
+      "alias": "zoom_in",
+      "old_target": "放大",
+      "disposition": "deferred",
+      "reason_ko": "'抖入放大', '放大弹动', '波动放大'가 서로 다른 확대 그룹 애니메이션이라 승인 전 제외."
+    },
+    {
+      "alias_dict": "GROUP_ANIMATION_ALIASES",
+      "enum_class": "GroupAnimationType",
+      "alias": "zoom_out",
+      "old_target": "缩小",
+      "disposition": "deferred",
+      "reason_ko": "'向右缩小', '向左缩小', '形变缩小' 등 방향/형태 변형 중 기본값을 정할 근거가 없어 승인 전 제외."
+    },
+    {
+      "alias_dict": "GROUP_ANIMATION_ALIASES",
+      "enum_class": "GroupAnimationType",
+      "alias": "shake",
+      "old_target": "抖动",
+      "disposition": "deferred",
+      "reason_ko": "'动感摇晃_I', '动感摇晃_II', '红酒摇晃'이 서로 다른 흔들림 변형이라 승인 전 제외."
+    },
+    {
+      "alias_dict": "GROUP_ANIMATION_ALIASES",
+      "enum_class": "GroupAnimationType",
+      "alias": "heartbeat",
+      "old_target": "心跳",
+      "disposition": "removed",
+      "reason_ko": "심박/심장 박동과 대응하는 실재 그룹 애니메이션 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "GROUP_ANIMATION_ALIASES",
+      "enum_class": "GroupAnimationType",
+      "alias": "rotate",
+      "old_target": "旋转",
+      "new_target": "转圈圈",
+      "disposition": "remapped",
+      "reason_ko": "계속 회전하는 그룹 애니메이션 의미와 직접 대응하는 실재 멤버 '转圈圈'으로 교체."
+    },
+    {
+      "alias_dict": "GROUP_ANIMATION_ALIASES",
+      "enum_class": "GroupAnimationType",
+      "alias": "bounce",
+      "old_target": "弹跳",
+      "disposition": "deferred",
+      "reason_ko": "'回弹伸缩', '放大弹动', '缩小弹动', '跳跳糖'이 서로 다른 바운스 변형이라 승인 전 제외."
+    },
+    {
+      "alias_dict": "TEXT_INTRO_ALIASES",
+      "enum_class": "TextIntro",
+      "alias": "typewriter_i",
+      "old_target": "打字机I",
+      "new_target": "打字机_I",
+      "disposition": "remapped",
+      "reason_ko": "동일 멤버의 실제 underscore 표기 '打字机_I'로 교체."
+    },
+    {
+      "alias_dict": "TEXT_INTRO_ALIASES",
+      "enum_class": "TextIntro",
+      "alias": "typewriter_ii",
+      "old_target": "打字机II",
+      "new_target": "打字机_II",
+      "disposition": "remapped",
+      "reason_ko": "동일 멤버의 실제 underscore 표기 '打字机_II'로 교체."
+    },
+    {
+      "alias_dict": "TEXT_INTRO_ALIASES",
+      "enum_class": "TextIntro",
+      "alias": "slide_up",
+      "old_target": "向上滑入",
+      "new_target": "向上滑动",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向上滑动'로 교체."
+    },
+    {
+      "alias_dict": "TEXT_INTRO_ALIASES",
+      "enum_class": "TextIntro",
+      "alias": "slide_down",
+      "old_target": "向下滑入",
+      "new_target": "向下滑动",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向下滑动'로 교체."
+    },
+    {
+      "alias_dict": "TEXT_INTRO_ALIASES",
+      "enum_class": "TextIntro",
+      "alias": "slide_left",
+      "old_target": "向左滑入",
+      "new_target": "向左滑动",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向左滑动'로 교체."
+    },
+    {
+      "alias_dict": "TEXT_INTRO_ALIASES",
+      "enum_class": "TextIntro",
+      "alias": "slide_right",
+      "old_target": "向右滑入",
+      "new_target": "向右滑动",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向右滑动'로 교체."
+    },
+    {
+      "alias_dict": "TEXT_OUTRO_ALIASES",
+      "enum_class": "TextOutro",
+      "alias": "slide_up",
+      "old_target": "向上滑出",
+      "new_target": "向上滑动",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向上滑动'로 교체."
+    },
+    {
+      "alias_dict": "TEXT_OUTRO_ALIASES",
+      "enum_class": "TextOutro",
+      "alias": "slide_down",
+      "old_target": "向下滑出",
+      "new_target": "向下滑动",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向下滑动'로 교체."
+    },
+    {
+      "alias_dict": "TEXT_OUTRO_ALIASES",
+      "enum_class": "TextOutro",
+      "alias": "slide_left",
+      "old_target": "向左滑出",
+      "new_target": "向左滑动",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向左滑动'로 교체."
+    },
+    {
+      "alias_dict": "TEXT_OUTRO_ALIASES",
+      "enum_class": "TextOutro",
+      "alias": "slide_right",
+      "old_target": "向右滑出",
+      "new_target": "向右滑动",
+      "disposition": "remapped",
+      "reason_ko": "기존 의미와 직접 대응하는 실재 enum 멤버 '向右滑动'로 교체."
+    },
+    {
+      "alias_dict": "TEXT_OUTRO_ALIASES",
+      "enum_class": "TextOutro",
+      "alias": "disappear",
+      "old_target": "消失",
+      "new_target": "消散",
+      "disposition": "remapped",
+      "reason_ko": "사라지는 의미와 직접 대응하는 실재 멤버 '消散'으로 교체."
+    },
+    {
+      "alias_dict": "TEXT_OUTRO_ALIASES",
+      "enum_class": "TextOutro",
+      "alias": "dissolve",
+      "old_target": "溶解",
+      "new_target": "溶解_出场",
+      "disposition": "remapped",
+      "reason_ko": "텍스트 dissolve-out과 직접 대응하는 실재 멤버 '溶解_出场'으로 교체."
+    },
+    {
+      "alias_dict": "TEXT_LOOP_ANIM_ALIASES",
+      "enum_class": "TextLoopAnim",
+      "alias": "shake",
+      "old_target": "抖动",
+      "new_target": "晃动",
+      "disposition": "remapped",
+      "reason_ko": "반복 흔들림과 동의인 실재 멤버 '晃动'으로 교체."
+    },
+    {
+      "alias_dict": "TEXT_LOOP_ANIM_ALIASES",
+      "enum_class": "TextLoopAnim",
+      "alias": "bounce",
+      "old_target": "弹跳",
+      "disposition": "deferred",
+      "reason_ko": "'随机弹跳', '弹跳拉伸', '缤纷弹跳'이 서로 다른 바운스 변형이라 승인 전 제외."
+    },
+    {
+      "alias_dict": "TEXT_LOOP_ANIM_ALIASES",
+      "enum_class": "TextLoopAnim",
+      "alias": "pulse",
+      "old_target": "脉动",
+      "disposition": "deferred",
+      "reason_ko": "'闪动脉冲'과 '脉冲闪动' 중 어느 점멸 펄스를 기본값으로 할지 승인 필요."
+    },
+    {
+      "alias_dict": "TEXT_LOOP_ANIM_ALIASES",
+      "enum_class": "TextLoopAnim",
+      "alias": "rainbow",
+      "old_target": "彩虹",
+      "disposition": "removed",
+      "reason_ko": "무지개와 직접 대응하는 실재 텍스트 루프 멤버가 없어 제거."
+    },
+    {
+      "alias_dict": "AUDIO_SCENE_EFFECT_ALIASES",
+      "enum_class": "AudioSceneEffectType",
+      "alias": "echo",
+      "old_target": "回声",
+      "new_target": "回音",
+      "disposition": "remapped",
+      "reason_ko": "echo의 동의어인 실재 멤버 '回音'으로 교체."
+    },
+    {
+      "alias_dict": "AUDIO_SCENE_EFFECT_ALIASES",
+      "enum_class": "AudioSceneEffectType",
+      "alias": "reverb",
+      "old_target": "混响",
+      "disposition": "deferred",
+      "reason_ko": "'超级混响'과 'Bandpass_Reverb'가 서로 다른 리버브 변형이라 승인 전 제외."
+    },
+    {
+      "alias_dict": "AUDIO_SCENE_EFFECT_ALIASES",
+      "enum_class": "AudioSceneEffectType",
+      "alias": "telephone",
+      "old_target": "电话音效",
+      "new_target": "电话",
+      "disposition": "remapped",
+      "reason_ko": "전화 음색과 직접 대응하는 실재 멤버 '电话'로 교체."
+    },
+    {
+      "alias_dict": "AUDIO_SCENE_EFFECT_ALIASES",
+      "enum_class": "AudioSceneEffectType",
+      "alias": "stadium",
+      "old_target": "体育馆",
+      "disposition": "removed",
+      "reason_ko": "경기장 음향과 직접 대응하는 실재 오디오 효과 멤버가 없어 제거."
+    }
+  ]
+}

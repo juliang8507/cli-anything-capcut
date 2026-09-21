@@ -6,7 +6,7 @@
 
 CapCut / JianYing(剪映) 드래프트를 CLI로 스크립팅하는 하네스. `pyCapCut` 라이브러리 위에서 이벤트 소스 세션을 관리하고 원샷 커맨드와 인터랙티브 REPL을 제공합니다.
 
-> **현재 버전: 0.5.1**
+> **현재 버전: 0.5.2**
 > 변경 이력은 [CHANGELOG.md](CHANGELOG.md) 참조.
 
 ## 설치
@@ -223,9 +223,11 @@ cli_anything/capcut/
 ├── utils/
 │   ├── capcut_backend.py    # 드래프트 폴더 자동 감지
 │   └── repl_skin.py         # prompt-toolkit REPL
-└── tests/
-    ├── test_core.py         # 25개 유닛 테스트
-    └── test_full_e2e.py     # 8개 subprocess 통합 테스트
+└── tests/                   # 25개 파일 / 396 tests
+    ├── test_core.py          # 유닛 테스트
+    ├── test_e2e_op_matrix.py # CLI -> replay -> save 전 구간 검증
+    ├── test_import_draft.py  # CapCut draft 역변환
+    └── ...                   # 기능별 테스트
 ```
 
 ## 옛 버전 스펙 (재구성 참고 자료)

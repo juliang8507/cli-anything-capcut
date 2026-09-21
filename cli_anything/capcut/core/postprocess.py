@@ -10,6 +10,7 @@ pyCapCut이 제대로 반영 못 하는 필드들을 save가 끝난 뒤 JSON을 
 
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
 from typing import Any
@@ -26,6 +27,14 @@ def _rgb_to_hex(color: Any) -> str | None:
     if max(r, g, b) <= 1.0:
         r, g, b = int(r * 255), int(g * 255), int(b * 255)
     return f"#{int(r):02x}{int(g):02x}{int(b):02x}"
+
+
+def _ensure_dict(container: dict, key: str) -> dict:
+    value = container.get(key)
+    if not isinstance(value, dict):
+        value = {}
+        container[key] = value
+    return value
 
 
 def _find_text_segment(draft_json: dict, track_name: str, seg_index: int) -> dict | None:
@@ -49,7 +58,7 @@ def _find_text_material(draft_json: dict, material_id: str) -> dict | None:
 
 
 def apply_text_style_patch(draft_json: dict, args: dict, session_data: dict) -> list[str]:
-    """font_path / border_* / shadow_* / font_color 직접 기록.
+    """content style font / border_* / shadow_* / font_color 직접 기록.
 
     버그 #17, #18, #19, #20 대응.
     """
@@ -76,8 +85,27 @@ def apply_text_style_patch(draft_json: dict, args: dict, session_data: dict) -> 
 
     # 폰트 경로 (버그 #17)
     if "font_path" in args:
-        mat["font_path"] = args["font_path"]
-    if "font_resource_id" in args:
+        font_path = Path(args["font_path"]).expanduser().resolve().as_posix()
+        font_resource_id = str(args.get("font_resource_id") or "")
+
+        # material 레벨 필드는 CapCut과의 일관성을 위해 함께 유지한다.
+        mat["font_path"] = font_path
+        mat["font_resource_id"] = font_resource_id
+
+        try:
+            content = json.loads(mat.get("content", ""))
+        except (TypeError, json.JSONDecodeError):
+            warnings.append("text_style_patch: text material content JSON 해석 실패")
+        else:
+            styles = content.get("styles") if isinstance(content, dict) else None
+            if not isinstance(styles, list) or not styles:
+                warnings.append("text_style_patch: content.styles가 비어 있어 font 주입 생략")
+            elif not isinstance(styles[0], dict):
+                warnings.append("text_style_patch: content.styles[0]이 객체가 아니어서 font 주입 생략")
+            else:
+                styles[0]["font"] = {"id": font_resource_id, "path": font_path}
+                mat["content"] = json.dumps(content, ensure_ascii=False)
+    elif "font_resource_id" in args:
         mat["font_resource_id"] = args["font_resource_id"]
 
     # 색 (버그 #20) — "None" 문자열 대신 hex
@@ -168,7 +196,7 @@ def apply_color_adjust_patch(draft_json: dict, args: dict, session_data: dict) -
                   "highlights", "shadows", "vibrance"):
         val = args.get(field)
         if val is not None:
-            seg.setdefault("color_adjust", {})[field] = float(val)
+            _ensure_dict(seg, "color_adjust")[field] = float(val)
     return warnings
 
 
@@ -354,7 +382,7 @@ def apply_blend_mode_patch(draft_json: dict, args: dict, session_data: dict) -> 
         warnings.append(f"set_blend_mode: 알 수 없는 모드 '{mode}', normal(0) 사용")
         int_val = 0
 
-    seg.setdefault("track_attribute", {})["blend_mode"] = int_val
+    _ensure_dict(seg, "track_attribute")["blend_mode"] = int_val
     return warnings
 
 
@@ -519,8 +547,9 @@ def apply_speed_curve_patch(draft_json: dict, args: dict, session_data: dict) ->
     else:
         # 기존 material 업데이트
         speed_mat["mode"] = "curve"
-        speed_mat.setdefault("curve_speed", {})["points"] = point_dicts
-        speed_mat["curve_speed"]["curve_range"] = curve_range
+        curve_speed = _ensure_dict(speed_mat, "curve_speed")
+        curve_speed["points"] = point_dicts
+        curve_speed["curve_range"] = curve_range
 
     return warnings
 
@@ -671,8 +700,10 @@ def apply_postprocess(draft_content_path: Path, session_data: dict) -> dict:
 
     draft_json = json.loads(draft_content_path.read_text(encoding="utf-8"))
     warnings: list[str] = []
+    applied = 0
 
     for op in post_ops:
+        before = copy.deepcopy(draft_json)
         args = op.get("args", {})
         if op["op"] == "text_style_patch":
             warnings.extend(apply_text_style_patch(draft_json, args, session_data))
@@ -700,8 +731,10 @@ def apply_postprocess(draft_content_path: Path, session_data: dict) -> dict:
             warnings.extend(apply_color_curves_patch(draft_json, args, session_data))
         elif op["op"] == "add_hsl_adjust":
             warnings.extend(apply_hsl_patch(draft_json, args, session_data))
+        if draft_json != before:
+            applied += 1
 
     draft_content_path.write_text(
         json.dumps(draft_json, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    return {"applied": len(post_ops), "warnings": warnings}
+    return {"applied": applied, "warnings": warnings}

@@ -85,12 +85,12 @@ color adjust --brightness -0.10 --contrast 0.25 --saturation 0.10 \
 # color wheels --shadow-hue 240 --shadow-sat 0.30 --highlight-hue 300 --highlight-sat 0.25
 ```
 
-### 3.8 웜·오렌지 (카페·라이프스타일·라운지)
+### 3.8 웜·오렌지 (카페·라이프스타일·호텔 라운지)
 ```bash
 color adjust --brightness 0.10 --contrast 0.10 --saturation 0.05 \
   --temperature 0.20 --shadows 0.10
 ```
-💎 **럭셔리 제품 영상 기본 추천**.
+🏨 **호텔 객실 영상 기본 추천**.
 
 ### 3.9 MOODY (Netflix Original)
 ```bash
@@ -117,7 +117,7 @@ color adjust --brightness 0.15 --contrast -0.10 --saturation -0.20 \
 | 빈티지 | +0.05 | -0.15 | -0.25 | +0.15 | milky black |
 | B&W 노아르 | -0.05 | **+0.40** | **-1.0** | 0 | 극단 콘트라스트 |
 | 사이버 | -0.10 | +0.25 | +0.10 | **-0.30** | 어둠+네온 |
-| 웜/카페 | +0.10 | +0.10 | +0.05 | +0.20 | 안락함 (**라이프스타일 기본**) |
+| 웜/카페 | +0.10 | +0.10 | +0.05 | +0.20 | 안락함 (**호텔 기본**) |
 | MOODY | **-0.15** | +0.30 | -0.30 | -0.15 | 어둡지만 milky |
 | PASTEL | **+0.15** | -0.10 | -0.20 | +0.05 | high-key 부드러움 |
 
@@ -143,7 +143,7 @@ color adjust --brightness 0.15 --contrast -0.10 --saturation -0.20 \
 | **Pretendard** | 1순위 본문/자막 (모던, 무료, 가변) |
 | **Noto Sans KR (본고딕)** | 자막 표준 (Google, 가독성 검증) |
 | **Black Han Sans** | 타이틀/강조 (쇼츠 훅용) |
-| **한글 캐주얼체 (G마켓 산스 등)** | 캐주얼 타이틀 (예능톤) |
+| **여기어때 잘난체** | 캐주얼 타이틀 (예능톤) |
 
 **영문**
 | 폰트 | 용도 |
@@ -232,11 +232,11 @@ color adjust --brightness 0.15 --contrast -0.10 --saturation -0.20 \
 - **Blade Runner 2049**, **Cyberpunk 2077 트레일러**, **Tron: Legacy**
 - YouTube: **Neon Icons**, **Synthwave Avenue**
 
-### 💎 럭셔리·라이프스타일
+### 🏨 호텔·라이프스타일 (엔크님 주력)
 - **Aman Resorts 공식**(최상급 럭셔리, 미니멀+시네마틱)
 - **Four Seasons**, **Rosewood Hotels**, **Belmond**, **Bulgari Hotels**
-- 한국: 럭셔리 브랜드 공식 채널
-- 감성 vlog: "라이프스타일 브이로그" 검색
+- 한국: **파라다이스 시티**, **신라호텔**, **롯데호텔** 공식
+- 감성 vlog: "호텔 브이로그 감성" 검색
 
 ### 플랫폼 벤치마크
 - YouTube Shorts: **vidIQ**, **TubeBuddy**, **Hook Point**(Brendan Kane)

@@ -137,7 +137,7 @@ _EXAMPLE_RECIPE_SIMPLE = {
         {"op": "add_image", "args": {"file": "main.jpg", "start": "2s", "duration": "25s", "track": "V1"}},
         {"op": "add_image", "args": {"file": "outro.jpg", "start": "27s", "duration": "3s", "track": "V1"}},
         {"op": "add_audio", "args": {"file": "bgm.mp3", "start": "0s", "duration": "30s", "track": "BGM", "volume": 0.4}},
-        {"op": "add_text", "args": {"text": "브랜드 이름", "start": "3s", "duration": "20s", "track": "sub",
+        {"op": "add_text", "args": {"text": "호텔 이름", "start": "3s", "duration": "20s", "track": "sub",
                                       "size": 6.0, "color": [1, 1, 1],
                                       "clip_settings": {"transform_x": 0.0, "transform_y": -0.75}}},
     ],

@@ -5,6 +5,7 @@ from __future__ import annotations
 import click
 
 from cli_anything.capcut.commands.helpers import (
+    append_validated_operation,
     load_session,
     output_result,
     resolve_clip_settings,
@@ -111,28 +112,33 @@ def audio_add(ctx, project_path, file, start, duration, track, volume, speed):
 @audio_group.command("add-fade", help="오디오 세그먼트에 페이드 추가")
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--track", required=True)
-@click.option("--segment-ref", required=True)
+@click.option("--segment-ref", required=True, help="세그먼트 참조 (op ID)")
 @click.option("--fade-in", default="0s", show_default=True)
 @click.option("--fade-out", default="0s", show_default=True)
 @click.pass_context
 def audio_add_fade(ctx, project_path, track, segment_ref, fade_in, fade_out):
     session = load_session(project_path)
-    result = session.append_operation(
+    result = append_validated_operation(
+        session,
         "add_audio_fade",
         {"track": track, "segment_ref": segment_ref, "fade_in": fade_in, "fade_out": fade_out},
     )
     output_result(result, ctx.obj["json"])
 
 
-@audio_group.command("add-effect", help="오디오 세그먼트에 효과 추가 (echo, reverb, ...)")
+@audio_group.command(
+    "add-effect",
+    help="오디오 세그먼트에 효과 추가 (concert_hall, underwater, ...)",
+)
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--track", required=True)
-@click.option("--segment-ref", required=True)
+@click.option("--segment-ref", required=True, help="세그먼트 참조 (op ID)")
 @click.option("--name", required=True, help="효과 이름 (영어 별칭 또는 한자)")
 @click.pass_context
 def audio_add_effect(ctx, project_path, track, segment_ref, name):
     session = load_session(project_path)
-    result = session.append_operation(
+    result = append_validated_operation(
+        session,
         "add_audio_effect",
         {"track": track, "segment_ref": segment_ref, "name": name},
     )
@@ -143,13 +149,14 @@ def audio_add_effect(ctx, project_path, track, segment_ref, name):
 @video_group.command("add-fade", help="비디오 세그먼트에 페이드 추가")
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--track", required=True)
-@click.option("--segment-ref", required=True)
+@click.option("--segment-ref", required=True, help="세그먼트 참조 (op ID)")
 @click.option("--fade-in", default="0s", show_default=True)
 @click.option("--fade-out", default="0s", show_default=True)
 @click.pass_context
 def video_add_fade(ctx, project_path, track, segment_ref, fade_in, fade_out):
     session = load_session(project_path)
-    result = session.append_operation(
+    result = append_validated_operation(
+        session,
         "add_video_fade",
         {"track": track, "segment_ref": segment_ref, "fade_in": fade_in, "fade_out": fade_out},
     )
@@ -159,13 +166,14 @@ def video_add_fade(ctx, project_path, track, segment_ref, fade_in, fade_out):
 @video_group.command("add-transition", help="세그먼트 끝에 트랜지션 추가")
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--track", required=True)
-@click.option("--segment-ref", required=True)
+@click.option("--segment-ref", required=True, help="세그먼트 참조 (op ID)")
 @click.option("--name", required=True, help="트랜지션 이름 (dissolve, slide_left, ...)")
 @click.option("--duration", default="500ms", show_default=True)
 @click.pass_context
 def video_add_transition(ctx, project_path, track, segment_ref, name, duration):
     session = load_session(project_path)
-    result = session.append_operation(
+    result = append_validated_operation(
+        session,
         "add_video_transition",
         {"track": track, "segment_ref": segment_ref, "name": name, "duration": duration},
     )
@@ -175,14 +183,15 @@ def video_add_transition(ctx, project_path, track, segment_ref, name, duration):
 @video_group.command("add-animation", help="비디오 세그먼트에 애니메이션 추가")
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--track", required=True)
-@click.option("--segment-ref", required=True)
+@click.option("--segment-ref", required=True, help="세그먼트 참조 (op ID)")
 @click.option("--role", type=click.Choice(["intro", "outro", "group"]), default="intro")
 @click.option("--name", required=True, help="애니메이션 이름")
 @click.option("--duration", default="500ms", show_default=True)
 @click.pass_context
 def video_add_animation(ctx, project_path, track, segment_ref, role, name, duration):
     session = load_session(project_path)
-    result = session.append_operation(
+    result = append_validated_operation(
+        session,
         "add_video_animation",
         {"track": track, "segment_ref": segment_ref, "role": role,
          "name": name, "duration": duration},
@@ -209,7 +218,8 @@ _BLEND_MODE_CHOICES = [
 @click.pass_context
 def video_reverse(ctx, project_path, track, segment_ref):
     session = load_session(project_path)
-    result = session.append_operation(
+    result = append_validated_operation(
+        session,
         "set_reverse",
         {"track": track, "segment_ref": segment_ref},
     )
@@ -227,7 +237,7 @@ def video_freeze_frame(ctx, project_path, track, segment_ref, duration):
     args: dict = {"track": track, "segment_ref": segment_ref}
     if duration is not None:
         args["duration"] = duration
-    result = session.append_operation("set_freeze_frame", args)
+    result = append_validated_operation(session, "set_freeze_frame", args)
     output_result(result, ctx.obj["json"])
 
 
@@ -241,7 +251,8 @@ def video_freeze_frame(ctx, project_path, track, segment_ref, duration):
 @click.pass_context
 def video_blend_mode(ctx, project_path, track, segment_ref, mode):
     session = load_session(project_path)
-    result = session.append_operation(
+    result = append_validated_operation(
+        session,
         "set_blend_mode",
         {"track": track, "segment_ref": segment_ref, "mode": mode},
     )
@@ -265,7 +276,8 @@ def video_blend_mode(ctx, project_path, track, segment_ref, mode):
 def video_chroma_key(ctx, project_path, track, segment_ref, color, intensity,
                      shadow, smoothness, spill):
     session = load_session(project_path)
-    result = session.append_operation(
+    result = append_validated_operation(
+        session,
         "set_chroma_key",
         {
             "track": track,
@@ -294,7 +306,8 @@ def video_chroma_key(ctx, project_path, track, segment_ref, color, intensity,
 @click.pass_context
 def video_lut(ctx, project_path, track, segment_ref, lut_file, intensity, name):
     session = load_session(project_path)
-    result = session.append_operation(
+    result = append_validated_operation(
+        session,
         "add_lut",
         {
             "track": track,
@@ -349,7 +362,8 @@ def video_speed_curve(ctx, project_path, track, segment_ref, points, curve_range
             raise click.BadParameter(f"curve_range JSON 파싱 오류: '{curve_range}'")
 
     session = load_session(project_path)
-    result = session.append_operation(
+    result = append_validated_operation(
+        session,
         "set_speed_curve",
         {
             "track": track,

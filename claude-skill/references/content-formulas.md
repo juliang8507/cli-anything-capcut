@@ -23,14 +23,14 @@
 #### 1) 호기심 갭 (Curiosity Gap)
 공식: 정보 일부만 노출 → 뇌가 빈칸 채우려 함
 
-한국어: "이거 끝까지 봐야 진짜가 나옵니다" / "아무도 안 알려주는 ○○의 진짜 이유" / "20년 업계 베테랑이 절대 안 하는 행동 1가지"
+한국어: "이거 끝까지 봐야 진짜가 나옵니다" / "아무도 안 알려주는 ○○의 진짜 이유" / "30년 호텔 경력자가 절대 안 하는 행동 1가지"
 영어: "I probably shouldn't share this, but…" / "No one talks about this in [industry]…"
 연출: 첫 프레임 모자이크 + 0.4초 zoom-in + woosh SFX
 
 #### 2) 숫자/리스트
 공식: 구체 숫자 + 약속 + 차별점
 
-한국어: "업계 종사자만 아는 꿀팁 3가지" / "80% 사람들이 모르는 방법 7가지" / "매출 2배 만든 단 1가지 행동"
+한국어: "호텔 직원만 아는 꿀팁 3가지" / "80% 사람들이 모르는 방 잡는 법 7가지" / "매출 2배 만든 단 1가지 행동"
 영어: "The 3 mistakes everyone makes" / "5 things I do before every flight"
 연출: 카운트다운 5..4..3.. + 매 항목 0.3초 flash
 
@@ -44,7 +44,7 @@
 #### 4) 약속/혜택
 공식: 시간 단위 + 측정 가능한 결과
 
-한국어: "이 영상 30초만 보면 ○○ 해결됩니다" / "오늘부터 30% 아끼는 법"
+한국어: "이 영상 30초만 보면 ○○ 해결됩니다" / "오늘부터 호텔비 30% 아끼는 법"
 영어: "Master the J-cut in 30 seconds" / "This 5-second edit doubled my watch time"
 연출: Before/After 분할 화면 + 결과 2초 teaser
 
@@ -52,14 +52,14 @@
 공식: 통념 + "사실은 반대다" + 근거 약속
 
 한국어: **"대기업은 너가 일을 잘해서 돈을 많이 주는 게 아니야. 규칙을 잘 지키는 값으로 돈을 주는 거야"** (신윤주, 230만 뷰)
-한국어: "유명 앱이 더 싸다고요? 거짓말입니다" / "비싼 게 좋다는 건 마케팅 사기예요"
+한국어: "야놀자가 더 싸다고요? 거짓말입니다" / "비싼 게 좋다는 건 마케팅 사기예요"
 영어: "Everyone's doing [common practice] wrong"
 연출: "X" 빨간 오버레이 + 진지한 클로즈업 + 단호한 톤
 
 #### 6) 공포/손실 회피
 공식: 손실 회피는 보상 추구보다 **2배 강한 동기** (Kahneman)
 
-한국어: "이거 모르고 예약하면 호구됩니다" / "이 실수 한번에 230만원 날렸습니다"
+한국어: "이거 모르고 호텔 예약하면 호구됩니다" / "이 실수 한번에 230만원 날렸습니다"
 영어: "This one mistake cost me $2,300"
 연출: 어두운 톤 + 빨간 경고 + 사이렌 SFX 절제 + 진지한 표정
 ⚠️ **실제 가치 없으면 misleading 판정 → 60~80% 페널티**
@@ -67,21 +67,21 @@
 #### 7) 질문
 공식: 직접 질문 → 시청자 자기 답 떠올림
 
-한국어: "왜 우리 매장만 평점이 낮을까요?" / "이 둘 중에 뭐가 진짜 같으세요?"
+한국어: "왜 우리 호텔만 평점이 낮을까요?" / "이 둘 중에 뭐가 진짜 같으세요?"
 영어: "Did you know that honey never expires?"
 연출: 화면 가운데 큰 텍스트 질문 + 2개 선택지 분할
 
 #### 8) 권위/신뢰
 공식: 전문성·경력·숫자로 신뢰 확보
 
-한국어: "20년 업계 베테랑이 알려드립니다" / "데이터 200만 건 분석해보니까"
+한국어: "30년 호텔 경력자가 알려드립니다" / "예약 200만 건 분석해보니까"
 영어: "After interviewing 50 [experts], here's what they all do"
 연출: 자격증/명함 첫 프레임 0.5초 → 본론
 
 #### 9) POV / 공감 시뮬레이션 (⭐ 178만뷰 검증)
 공식: 시청자 처한 상황 묘사 → "이거 내 얘기"
 
-한국어: **"여기 꼬집을 수 있으면 동안상 50%"** (지혜, 178만 뷰) / "POV: 매장 줄 30분 기다린 당신"
+한국어: **"여기 꼬집을 수 있으면 동안상 50%"** (지혜, 178만 뷰) / "POV: 호텔 체크인 줄 30분 기다린 당신"
 영어: "POV: You're [relatable situation]" / "Tell me you're a [type] without telling me"
 연출: 1인칭 손/발 화면 + 일상 디테일 클로즈업 + 자연광
 
@@ -99,14 +99,14 @@ CLI로 위 10개 카테고리를 한 줄로 자동 생성. shake intensity, flas
 | 카테고리 번호 | `--category` 값 | 한 줄 예시 |
 |-------------|----------------|-----------|
 | 1) 호기심 갭 | `curiosity` | `preset hook -p p -t "이거 끝까지 봐야 진짜가 나옵니다" --category curiosity` |
-| 2) 숫자/리스트 | `number` | `preset hook -p p -t "업계 종사자만 아는 꿀팁 3가지" --category number` |
+| 2) 숫자/리스트 | `number` | `preset hook -p p -t "호텔 직원만 아는 꿀팁 3가지" --category number` |
 | 3) 반전/패턴 인터럽트 | `pattern-interrupt` | `preset hook -p p -t "다들 ○○하지 마세요" --category pattern-interrupt` |
 | 4) 약속/혜택 | `promise` | `preset hook -p p -t "30초만 보면 해결됩니다" --category promise` |
-| 5) 논란/반대 | `contrarian` | `preset hook -p p -t "유명 앱이 더 싸다고요? 거짓말입니다" --category contrarian` |
+| 5) 논란/반대 | `contrarian` | `preset hook -p p -t "야놀자가 더 싸다고요? 거짓말입니다" --category contrarian` |
 | 6) 공포/손실 회피 | `fear` | `preset hook -p p -t "이거 모르면 호구됩니다" --category fear` |
-| 7) 질문 | `question` | `preset hook -p p -t "왜 우리 매장만 평점이 낮을까요?" --category question` |
-| 8) 권위/신뢰 | `authority` | `preset hook -p p -t "20년 업계 베테랑이 알려드립니다" --category authority` |
-| 9) POV / 공감 | `pov` | `preset hook -p p -t "POV: 매장 줄 30분 기다린 당신" --category pov` |
+| 7) 질문 | `question` | `preset hook -p p -t "왜 우리 호텔만 평점이 낮을까요?" --category question` |
+| 8) 권위/신뢰 | `authority` | `preset hook -p p -t "30년 호텔 경력자가 알려드립니다" --category authority` |
+| 9) POV / 공감 | `pov` | `preset hook -p p -t "POV: 호텔 체크인 줄 30분 기다린 당신" --category pov` |
 | 10) 충격적 사실 | `shock` | `preset hook -p p -t "한국인 90%가 잘못 알고 있는 ○○" --category shock` |
 
 ### 1.3 시각 훅 기법 매트릭스
@@ -206,13 +206,13 @@ CLI로 위 10개 카테고리를 한 줄로 자동 생성. shake intensity, flas
 ❌ 쇼츠에 10초 컷 (이탈)
 ❌ 강의에 1초 컷 (정보 손실, 멀미)
 
-### 2.6 라이프스타일·럭셔리 콘텐츠 권장
+### 2.6 호텔 콘텐츠 권장
 
 | 용도 | ASL | 구조 |
 |------|-----|------|
-| 라이프스타일 릴스 (30s) | 1.5~2.5초 | 훅 3초 + 외관→공간→제품 1초씩 + CTA |
-| 라이프스타일 피드 영상 (60s) | 3~5초 | 제품 정적 5~8초 + 디테일 1~2초 강약 |
-| 브랜드 시설 롱폼 (3min) | 5~8초 | A(외관)→B(시설)→C(제품) 3블록 |
+| 호텔 릴스 (30s) | 1.5~2.5초 | 훅 3초 + 외관→로비→객실 1초씩 + CTA |
+| 호텔 피드 영상 (60s) | 3~5초 | 객실 정적 5~8초 + 디테일 1~2초 강약 |
+| 호텔 시설 롱폼 (3min) | 5~8초 | A(외관)→B(시설)→C(객실) 3블록 |
 | 직원 교육 영상 | 6~10초 | 정보 명료성 우선, 워크맨 스타일 금지 |
 
 ---
@@ -237,7 +237,7 @@ CLI로 위 10개 카테고리를 한 줄로 자동 생성. shake intensity, flas
 | **여행** | indie folk·cinematic post-rock | 80~110 | 0.35 | 1.5s / 2.5s | - |
 | **제품 광고** | 드라마틱 오케스트라·모던 일렉트로 | 100~130 | 0.4 | 0.5s / 1s | - |
 | **강의·튜토리얼** | 잔잔 앰비언트·피아노 | 60~80 | **0.1~0.15** | 1s / 2s | 나레이션 우선 |
-| **💎 럭셔리·라이프스타일** | 시네마틱 오케스트라·스무스 재즈 | **70~90** | 0.3 | 0.3s / 0.5s | 라이프스타일 쇼츠=Smooth jazz 75~85 |
+| **🏨 호텔·럭셔리** | 시네마틱 오케스트라·스무스 재즈 | **70~90** | 0.3 | 0.3s / 0.5s | 객실 쇼츠=Smooth jazz 75~85 |
 | **뷰티·패션** | 업비트 팝·일렉트로 | 110~130 | 0.5 | 0.3s / 0.5s | - |
 | **요리·푸드** | bossa nova·swing·밝은 Lo-fi | 100~120 | 0.4 | 0.5s / 1s | - |
 | **뮤직비디오** | 곡 본체 | - | 1.0 | 0s / 2s | BGM 별도 없음 |
@@ -275,14 +275,14 @@ CLI로 위 10개 카테고리를 한 줄로 자동 생성. shake intensity, flas
 ❌ 비트 강한 BGM + 비트 무관 컷
 ❌ 감성 영상에 일렉트로, 에너제틱 영상에 앰비언트
 
-### 3.5 라이프스타일 시나리오 4종
+### 3.5 호텔 시나리오 4종 (엔크님 주력)
 
 | 시나리오 | BGM | 볼륨 | 페이드 | LUFS |
 |---------|-----|------|--------|------|
-| 라이프스타일 쇼츠 | Smooth jazz 75~85 BPM | -10 dB | 0.3s / 0.5s | -12 |
-| 브랜드 시설 롱폼 | Cinematic neoclassical 70~90 | -14 dB | 1s / 2s | -14 |
-| 기업 브리핑 | Light corporate 60~80 | **-22 dB** | 1s / 2s | YouTube LUFS |
-| 직원 교육 | **BGM 없음** | - | - | - | SFX (success/click)만 Mixkit·Pixabay |
+| 호텔 객실 쇼츠 | Smooth jazz 75~85 BPM | -10 dB | 0.3s / 0.5s | -12 |
+| 호텔 시설 롱폼 | Cinematic neoclassical 70~90 | -14 dB | 1s / 2s | -14 |
+| 모닝 브리핑 | Light corporate 60~80 | **-22 dB** | 1s / 2s | YouTube LUFS |
+| 캐셔 교육 | **BGM 없음** | - | - | - | SFX (success/click)만 Mixkit·Pixabay |
 
 ---
 

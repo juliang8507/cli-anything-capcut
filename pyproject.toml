@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cli-anything-capcut"
-version = "0.5.1"
+version = "0.5.2"
 description = "CLI harness for pyCapCut — scriptable CapCut / JianYing draft generation"
 readme = "README.md"
 license = { text = "MIT" }

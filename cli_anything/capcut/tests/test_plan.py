@@ -323,7 +323,7 @@ class TestRealAPICall:
         out_path = tmp_path / "recipe.json"
         result = runner.invoke(
             plan_mod.plan_cmd,
-            ["30초 짧은 브랜드 홍보 숏폼. 하단 자막.", "-o", str(out_path)],
+            ["30초 짧은 호텔 홍보 숏폼. 하단 자막.", "-o", str(out_path)],
             obj={"json": True},
         )
         assert result.exit_code == 0, result.output

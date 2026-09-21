@@ -41,6 +41,7 @@ def _replay_subset(session_data: dict, skip_ids: set[str]) -> tuple[Any, list[di
     import pycapcut as cc
 
     from cli_anything.capcut.core import op_handlers as _oh
+    from cli_anything.capcut.core.session import format_replay_exception
 
     filtered_ops = [
         op for op in session_data.get("operations", [])
@@ -58,7 +59,7 @@ def _replay_subset(session_data: dict, skip_ids: set[str]) -> tuple[Any, list[di
             errors.append({
                 "index": idx,
                 "op": op,
-                "error": f"{type(e).__name__}: {e}",
+                "error": format_replay_exception(e),
             })
     return script, errors
 

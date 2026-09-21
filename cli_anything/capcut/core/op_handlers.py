@@ -13,11 +13,15 @@
 
 from __future__ import annotations
 
+import ast
+import inspect
+import textwrap
 from typing import Any, Callable
 
 import pycapcut as cc
 
 from cli_anything.capcut.core.alias_map import resolve_alias
+from cli_anything.capcut.core.op_registry import POSTPROCESS_OPS
 from cli_anything.capcut.core.segment_utils import resolve_segment_ref
 from cli_anything.capcut.core.time_utils import parse_time_value
 
@@ -113,6 +117,25 @@ def _resolve_enum(enum_class_name: str, enum_cls: Any, value: Any) -> Any:
             f"후보 검색: `cli-anything-capcut alias search --class {enum_class_name} "
             f"-k <키워드>` 또는 `alias list --class {enum_class_name}`"
         ) from e
+
+
+def _material_id(material: Any) -> str | None:
+    """Return the id used by a pycapcut material object or exported dict."""
+    if isinstance(material, dict):
+        identifier = material.get("id")
+        return identifier if isinstance(identifier, str) else None
+    for attribute in ("global_id", "animation_id", "fade_id", "effect_id"):
+        identifier = getattr(material, attribute, None)
+        if isinstance(identifier, str):
+            return identifier
+    return None
+
+
+def _append_material_once(container: list[Any], material: Any) -> None:
+    """Register a post-add_segment material using pycapcut's native object shape."""
+    identifier = _material_id(material)
+    if identifier is None or all(_material_id(item) != identifier for item in container):
+        container.append(material)
 
 
 # =========================================================================
@@ -288,7 +311,7 @@ def _op_add_text(script: cc.ScriptFile, args: dict, ctx: dict) -> None:
         try:
             font_type = _resolve_enum("FontType", cc.FontType, font)
         except OpHandlerError:
-            font_type = None  # 미매칭 → 기본 폰트. postprocess에서 font_path 직접 패치
+            font_type = None  # 레거시 op 호환: text add CLI는 기록 전에 폰트를 엄격 검증
 
     segment = cc.TextSegment(
         text,
@@ -385,6 +408,7 @@ def _op_add_video_transition(script: cc.ScriptFile, args: dict, ctx: dict) -> No
     tr_type = _resolve_enum("TransitionType", cc.TransitionType, args["name"])
     dur_us = parse_time_value(args.get("duration", "500ms"))
     seg.add_transition(tr_type, duration=dur_us)
+    _append_material_once(script.materials.transitions, seg.transition)
 
 
 def _op_add_video_fade(script: cc.ScriptFile, args: dict, ctx: dict) -> None:
@@ -397,6 +421,7 @@ def _op_add_video_fade(script: cc.ScriptFile, args: dict, ctx: dict) -> None:
     in_us = parse_time_value(args.get("fade_in", 0))
     out_us = parse_time_value(args.get("fade_out", 0))
     seg.add_fade(in_duration=in_us, out_duration=out_us)
+    _append_material_once(script.materials.audio_fades, seg.fade)
 
 
 def _op_add_video_animation(script: cc.ScriptFile, args: dict, ctx: dict) -> None:
@@ -420,6 +445,7 @@ def _op_add_video_animation(script: cc.ScriptFile, args: dict, ctx: dict) -> Non
         raise OpHandlerError(f"알 수 없는 animation role: {anim_role}")
     enum_name, enum_cls = anim_map[anim_role]
     seg.add_animation(_resolve_enum(enum_name, enum_cls, name), duration=dur_us)
+    _append_material_once(script.materials.animations, seg.animations_instance)
 
 
 def _op_add_text_animation(script: cc.ScriptFile, args: dict, ctx: dict) -> None:
@@ -442,6 +468,7 @@ def _op_add_text_animation(script: cc.ScriptFile, args: dict, ctx: dict) -> None
         raise OpHandlerError(f"알 수 없는 text animation role: {anim_role}")
     enum_name, enum_cls = anim_map[anim_role]
     seg.add_animation(_resolve_enum(enum_name, enum_cls, name), duration=dur_us)
+    _append_material_once(script.materials.animations, seg.animations_instance)
 
 
 _KEYFRAME_PROP_MAP = {
@@ -487,6 +514,7 @@ def _op_add_audio_fade(script: cc.ScriptFile, args: dict, ctx: dict) -> None:
     out_us = parse_time_value(args.get("fade_out", 0))
     if hasattr(seg, "add_fade"):
         seg.add_fade(in_duration=in_us, out_duration=out_us)
+        _append_material_once(script.materials.audio_fades, seg.fade)
 
 
 def _op_add_audio_effect(script: cc.ScriptFile, args: dict, ctx: dict) -> None:
@@ -499,6 +527,7 @@ def _op_add_audio_effect(script: cc.ScriptFile, args: dict, ctx: dict) -> None:
     fx = _resolve_enum("AudioSceneEffectType", cc.AudioSceneEffectType, args["name"])
     if hasattr(seg, "add_effect"):
         seg.add_effect(fx)
+        _append_material_once(script.materials.audio_effects, seg.effects[-1])
 
 
 # =========================================================================
@@ -561,6 +590,7 @@ def _op_add_mask(script: cc.ScriptFile, args: dict, ctx: dict) -> None:
         kwargs["invert"] = bool(args["invert"])
 
     seg.add_mask(mask_type, **kwargs)
+    _append_material_once(script.materials.masks, seg.mask.export_json())
 
 
 def _op_add_background(script: cc.ScriptFile, args: dict, ctx: dict) -> None:
@@ -581,6 +611,7 @@ def _op_add_background(script: cc.ScriptFile, args: dict, ctx: dict) -> None:
             r, g, b = int(r * 255), int(g * 255), int(b * 255)
         color = f"#{int(r):02x}{int(g):02x}{int(b):02x}00"
     seg.add_background_filling(fill_type, blur=blur, color=color)
+    _append_material_once(script.materials.canvases, seg.background_filling)
 
 
 _OP_HANDLERS: dict[str, HandlerFn] = {
@@ -613,6 +644,10 @@ _OP_HANDLERS: dict[str, HandlerFn] = {
     "color_wheels": _op_noop,
 }
 
+# 이 op들은 save 후 JSON을 직접 패치하므로 replay에서는 ScriptFile을 변경하지 않는다.
+for _postprocess_op in POSTPROCESS_OPS:
+    _OP_HANDLERS.setdefault(_postprocess_op, _op_noop)
+
 
 def apply_operation(script: cc.ScriptFile, op: str, args: dict, ctx: dict) -> None:
     """op 이름에 해당하는 핸들러 호출."""
@@ -625,3 +660,119 @@ def apply_operation(script: cc.ScriptFile, op: str, args: dict, ctx: dict) -> No
 def list_ops() -> list[str]:
     """등록된 op 이름 전체."""
     return sorted(_OP_HANDLERS)
+
+
+def derive_handler_arg_names(op: str) -> set[str] | None:
+    """등록 핸들러가 실제로 읽는 최상위 ``args`` 키를 소스에서 도출한다.
+
+    별도 허용 목록을 만들지 않기 위해 ``_OP_HANDLERS``의 함수 소스를 AST로
+    분석한다. handler가 ``args``를 넘기는 같은 모듈의 헬퍼도 재귀 분석하고,
+    정적 tuple을 순회하는 키(``for opt in (...): args[opt]``)도 포함한다.
+    noop/미등록/소스 확인 불가 op는 검증 불가능을 뜻하는 ``None``을 반환한다.
+    """
+    handler = _OP_HANDLERS.get(op)
+    if handler is None or handler is _op_noop:
+        return None
+    return _derive_dict_keys(handler, "args", set())
+
+
+def _derive_dict_keys(
+    function: Callable,
+    parameter_name: str,
+    seen: set[tuple[Callable, str]],
+) -> set[str] | None:
+    marker = (function, parameter_name)
+    if marker in seen:
+        return set()
+    seen.add(marker)
+
+    try:
+        tree = ast.parse(textwrap.dedent(inspect.getsource(function)))
+    except (OSError, TypeError, IndentationError, SyntaxError):
+        return None
+
+    keys: set[str] = set()
+    loop_values: dict[str, set[str]] = {}
+
+    def literal_strings(node: ast.AST) -> set[str]:
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            return {node.value}
+        if isinstance(node, ast.Name):
+            return loop_values.get(node.id, set())
+        if isinstance(node, (ast.Tuple, ast.List, ast.Set)):
+            return {
+                value
+                for element in node.elts
+                for value in literal_strings(element)
+            }
+        return set()
+
+    def is_target(node: ast.AST) -> bool:
+        return isinstance(node, ast.Name) and node.id == parameter_name
+
+    class ArgReadVisitor(ast.NodeVisitor):
+        def visit_Call(self, node: ast.Call) -> None:
+            if (
+                isinstance(node.func, ast.Attribute)
+                and is_target(node.func.value)
+                and node.func.attr == "get"
+                and node.args
+            ):
+                keys.update(literal_strings(node.args[0]))
+
+            if isinstance(node.func, ast.Name):
+                callee = function.__globals__.get(node.func.id)
+                if (
+                    inspect.isfunction(callee)
+                    and callee.__module__ == function.__module__
+                ):
+                    try:
+                        parameters = list(inspect.signature(callee).parameters.values())
+                    except (TypeError, ValueError):
+                        parameters = []
+                    for position, argument in enumerate(node.args):
+                        if is_target(argument) and position < len(parameters):
+                            derived = _derive_dict_keys(
+                                callee, parameters[position].name, seen,
+                            )
+                            if derived is not None:
+                                keys.update(derived)
+                    for keyword in node.keywords:
+                        if keyword.arg is not None and is_target(keyword.value):
+                            derived = _derive_dict_keys(callee, keyword.arg, seen)
+                            if derived is not None:
+                                keys.update(derived)
+            self.generic_visit(node)
+
+        def visit_Subscript(self, node: ast.Subscript) -> None:
+            if is_target(node.value):
+                keys.update(literal_strings(node.slice))
+            self.generic_visit(node)
+
+        def visit_Compare(self, node: ast.Compare) -> None:
+            left = node.left
+            for operator, comparator in zip(node.ops, node.comparators):
+                if isinstance(operator, ast.In) and is_target(comparator):
+                    keys.update(literal_strings(left))
+                left = comparator
+            self.generic_visit(node)
+
+        def visit_For(self, node: ast.For) -> None:
+            self.visit(node.iter)
+            if isinstance(node.target, ast.Name):
+                previous = loop_values.get(node.target.id)
+                loop_values[node.target.id] = literal_strings(node.iter)
+                for statement in node.body:
+                    self.visit(statement)
+                if previous is None:
+                    loop_values.pop(node.target.id, None)
+                else:
+                    loop_values[node.target.id] = previous
+            else:
+                for statement in node.body:
+                    self.visit(statement)
+            for statement in node.orelse:
+                self.visit(statement)
+
+    ArgReadVisitor().visit(tree)
+    return keys

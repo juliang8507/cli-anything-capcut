@@ -347,7 +347,7 @@ def pip(ctx, project_path, file, start, duration, corner, scale, track):
 
 @preset_group.command("hook", help="첫 3초 훅 자동 생성 — shake + zoom + flash + bold text (3-Layer Stack)")
 @click.option("-p", "--project", "project_path", required=True)
-@click.option("-t", "--text", required=True, help='훅 텍스트 (5~8 단어 권장). 예: "이거 모르면 30% 더 낸다"')
+@click.option("-t", "--text", required=True, help='훅 텍스트 (5~8 단어 권장). 예: "이거 모르면 호텔값 30% 더 낸다"')
 @click.option("--duration", default="3s", show_default=True, help="훅 지속 시간. 쇼츠/릴스는 2~3초 권장")
 @click.option("--category", type=click.Choice([
     "curiosity", "number", "pattern-interrupt", "promise",
@@ -422,8 +422,8 @@ def hook(ctx, project_path, text, duration, category, video_track, text_track,
         })
         ops_summary["ops"].append({"op": "add_text", "id": text_result.get("id")})
 
-        # 3) 텍스트 intro 애니메이션 (pop/scale) — 단어별 강조
-        text_anim_name = "pop" if category in ("shock", "pattern-interrupt", "promise") else "fade_in"
+        # 3) 텍스트 intro 애니메이션 (bounce/fade) — 단어별 강조
+        text_anim_name = "bounce" if category in ("shock", "pattern-interrupt", "promise") else "fade_in"
         session.append_operation("add_text_animation", {
             "track": text_track,
             "segment_ref": text_result.get("id"),
@@ -473,14 +473,14 @@ def hook(ctx, project_path, text, duration, category, video_track, text_track,
             ops_summary["ops"].append({"op": "effect", "name": "shake",
                                         "intensity": tweak["shake_intensity"]})
 
-        # 6) flash 이펙트 (카테고리별 짧은 깜빡임)
+        # 6) flash용 glow 이펙트 (카테고리별 짧은 깜빡임)
         if flash and tweak["flash_dur"] != "0s":
             session.append_operation("add_effect", {
-                "name": "flash",
+                "name": "glow",
                 "start": "0s",
                 "duration": tweak["flash_dur"],
             })
-            ops_summary["ops"].append({"op": "effect", "name": "flash",
+            ops_summary["ops"].append({"op": "effect", "name": "glow",
                                         "duration": tweak["flash_dur"]})
 
     ops_summary["status"] = "hook_added"

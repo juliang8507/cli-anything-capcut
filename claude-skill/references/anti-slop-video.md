@@ -9,7 +9,7 @@
 
 ## ⭐ TOP 5 (이것만이라도 지키기)
 
-1. **폰트 Inter/Roboto/Arial/맑은고딕 금지** → Pretendard Bold, Montserrat Bold, Black Han Sans
+1. **폰트 Inter/Roboto/Arial/맑은고딕 금지** → Pretendard Bold, Montserrat Bold, 여기어때 잘난체
 2. **"안녕하세요/Hi everyone/오늘은/Today" 시작 금지** → 첫 3초 훅 의무
 3. **TTS 후처리 의무** → room tone -45dB + 랜덤 pause 300~600ms + EQ 고음 -2dB
 4. **컷 길이 균등화 금지** → Pictory "every scene roughly the same" 1순위 지문

@@ -31,9 +31,43 @@ from cli_anything.capcut.core.time_utils import (
 SESSION_SUFFIX = ".session.json"
 SCHEMA_VERSION = 2
 
+_DEDICATED_TRACK_OPS = {
+    "add_effect": ("effect", "E"),
+    "add_filter": ("filter", "F"),
+}
+
 
 class SessionError(RuntimeError):
     """세션 로드/저장/replay 실패."""
+
+
+def format_replay_exception(error: Exception) -> str:
+    """pycapcut의 트랙 관련 원문 예외에 한국어 조치 안내를 덧붙인다."""
+    original = f"{type(error).__name__}: {error}"
+    message = str(error)
+    if not isinstance(error, NameError) or "轨道" not in message:
+        return original
+
+    if "不存在接受" in message:
+        guidance = (
+            "호환되는 전용 트랙이 없습니다. 이 op에 맞는 트랙을 먼저 추가하거나 "
+            "`--track`으로 올바른 전용 트랙을 지정하세요."
+        )
+    elif "不存在名为" in message:
+        guidance = (
+            "지정한 이름의 트랙이 없습니다. `history`에서 트랙 이름을 확인하거나 "
+            "`track add`로 먼저 추가하세요."
+        )
+    elif "存在多个接受" in message:
+        guidance = (
+            "호환되는 트랙이 여러 개라 대상을 정할 수 없습니다. "
+            "`--track`으로 대상 트랙 이름을 명시하세요."
+        )
+    elif "已存在" in message:
+        guidance = "같은 이름 또는 타입의 트랙이 이미 있습니다. 다른 트랙 이름을 사용하세요."
+    else:
+        guidance = "트랙 처리에 실패했습니다. op에 맞는 트랙 타입과 이름을 확인하세요."
+    return f"{guidance} (pycapcut 원문: {original})"
 
 
 class Session:
@@ -123,6 +157,20 @@ class Session:
 
     def append_operation(self, op: str, args: dict, *, _status: str = "added") -> dict:
         clean_args = {k: v for k, v in (args or {}).items() if v is not None}
+        dedicated_track = _DEDICATED_TRACK_OPS.get(op)
+        if dedicated_track is not None:
+            track_type, track_prefix = dedicated_track
+            track_name = clean_args.get("track")
+            if not track_name:
+                track_name = _next_track_name(self.data, track_prefix)
+                clean_args["track"] = track_name
+            if not _has_track(self.data, track_name):
+                self.append_operation(
+                    "add_track",
+                    {"type": track_type, "name": track_name},
+                    _status="auto_added",
+                )
+
         op_id = _next_op_id(self.data)
         record = {"id": op_id, "op": op, "args": clean_args}
         self.data["operations"].append(record)
@@ -235,7 +283,8 @@ class Session:
                 _oh.apply_operation(script, op["op"], op.get("args", {}), ctx)
             except Exception as e:
                 raise SessionError(
-                    f"Replay failed at op #{idx} ({op['op']}): {type(e).__name__}: {e}"
+                    f"Replay failed at op #{idx} ({op['op']}): "
+                    f"{format_replay_exception(e)}"
                 ) from e
         return script
 
@@ -248,7 +297,11 @@ class Session:
             try:
                 _oh.apply_operation(script, op["op"], op.get("args", {}), ctx)
             except Exception as e:
-                errors.append({"index": idx, "op": op, "error": f"{type(e).__name__}: {e}"})
+                errors.append({
+                    "index": idx,
+                    "op": op,
+                    "error": format_replay_exception(e),
+                })
         return script, errors
 
     def validate(self) -> dict:
@@ -326,6 +379,13 @@ class Session:
 
     def gap_detect(self, track_name: str | None = None) -> list[dict]:
         """트랙 내 인접 세그먼트 사이의 갭 찾기."""
+        if track_name is None:
+            return [
+                {"track": track, **gap}
+                for track in self._segment_track_names()
+                for gap in self.gap_detect(track)
+            ]
+
         segs = self._track_segments(track_name)
         segs.sort(key=lambda x: x["start_us"])
         gaps: list[dict] = []
@@ -344,6 +404,13 @@ class Session:
 
     def overlap_detect(self, track_name: str | None = None) -> list[dict]:
         """트랙 내 겹치는 세그먼트 쌍 찾기."""
+        if track_name is None:
+            return [
+                {"track": track, **overlap}
+                for track in self._segment_track_names()
+                for overlap in self.overlap_detect(track)
+            ]
+
         segs = self._track_segments(track_name)
         segs.sort(key=lambda x: x["start_us"])
         overlaps: list[dict] = []
@@ -440,9 +507,59 @@ class Session:
         """다른 세션의 op들을 이 세션에 합침. offset_us>0이면 시간 이동."""
         merged = 0
         id_map: dict[str, str] = {}
+        existing_tracks = {
+            args.get("name"): {"type": args.get("type"), "id": op.get("id")}
+            for op in self.data["operations"]
+            if op.get("op") == "add_track"
+            for args in [op.get("args", {})]
+            if args.get("name")
+        }
+        reserved_track_names = set(existing_tracks)
+        reserved_track_names.update(
+            op.get("args", {}).get("name")
+            for op in other.data["operations"]
+            if op.get("op") == "add_track" and op.get("args", {}).get("name")
+        )
+        reused_tracks: dict[str, str] = {}
+        renamed_track_ops: dict[str, str] = {}
+        track_renames: dict[str, str] = {}
+
+        for op in other.data["operations"]:
+            if op.get("op") != "add_track":
+                continue
+            args = op.get("args", {})
+            name = args.get("name")
+            if not name:
+                continue
+            existing = existing_tracks.get(name)
+            if existing is None:
+                existing_tracks[name] = {"type": args.get("type"), "id": op.get("id")}
+                continue
+            if existing["type"] == args.get("type"):
+                reused_tracks[op["id"]] = existing["id"]
+                continue
+
+            suffix = 2
+            renamed = f"{name}_{suffix}"
+            while renamed in reserved_track_names:
+                suffix += 1
+                renamed = f"{name}_{suffix}"
+            reserved_track_names.add(renamed)
+            existing_tracks[renamed] = {"type": args.get("type"), "id": op.get("id")}
+            renamed_track_ops[op["id"]] = renamed
+            track_renames[name] = renamed
+
         with self.batch():
             for op in other.data["operations"]:
+                if op["id"] in reused_tracks:
+                    id_map[op["id"]] = reused_tracks[op["id"]]
+                    continue
                 new_args = dict(op.get("args", {}))
+                if op["id"] in renamed_track_ops:
+                    new_args["name"] = renamed_track_ops[op["id"]]
+                track = new_args.get("track")
+                if track in track_renames:
+                    new_args["track"] = track_renames[track]
                 if offset_us:
                     # time-based 필드들 이동
                     if "start" in new_args and op["op"] in TIMED_SEGMENT_OPS:
@@ -517,6 +634,19 @@ class Session:
 
     # ------------------------------------------------------------ internal
 
+    def _segment_track_names(self) -> list[str]:
+        """세그먼트가 있는 트랙 이름을 첫 등장 순서로 반환."""
+        tracks: list[str] = []
+        seen: set[str] = set()
+        for op in self.data["operations"]:
+            if op["op"] not in CREATION_OPS:
+                continue
+            track = op.get("args", {}).get("track")
+            if track and track not in seen:
+                seen.add(track)
+                tracks.append(track)
+        return tracks
+
     def _track_segments(self, track_name: str | None) -> list[dict]:
         out: list[dict] = []
         for i, op in enumerate(self.data["operations"]):
@@ -559,6 +689,29 @@ def _next_op_id(data: dict) -> str:
     while f"op_{i}" in used:
         i += 1
     return f"op_{i}"
+
+
+def _has_track(data: dict, track_name: str) -> bool:
+    return any(
+        op.get("op") == "add_track" and op.get("args", {}).get("name") == track_name
+        for op in data.get("operations", [])
+    )
+
+
+def _next_track_name(data: dict, prefix: str) -> str:
+    used = {
+        value
+        for op in data.get("operations", [])
+        for value in (
+            op.get("args", {}).get("name") if op.get("op") == "add_track" else None,
+            op.get("args", {}).get("track"),
+        )
+        if value
+    }
+    index = 1
+    while f"{prefix}{index}" in used:
+        index += 1
+    return f"{prefix}{index}"
 
 
 # 간단한 op → CLI 역변환 (핵심 op만). 원본은 더 풍부했지만 MVP 용도로 충분.

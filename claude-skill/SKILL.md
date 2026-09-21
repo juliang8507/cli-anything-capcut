@@ -1,7 +1,7 @@
 ---
 name: capcut-cli
 description: |
-  Guide for using the cli-anything-capcut CLI (v0.4.x) to programmatically build, validate, render,
+  Guide for using the cli-anything-capcut CLI (v0.5.x) to programmatically build, validate, render,
   and refine CapCut/JianYing video drafts. Use this skill whenever the user wants to: scaffold a
   CapCut project via CLI, write or import a recipe JSON, troubleshoot CapCut CLI errors, run a
   preview/review/render pipeline, generate a draft from natural language, or automate any video
@@ -13,13 +13,110 @@ description: |
   '필터 적용', '이펙트 추가', '자막 넣어줘', '색보정', '트랜지션', 'SRT 임포트', '슬라이드쇼',
   '가사 영상', 'BGM 깔아줘', 'CapCut 렌더', 'MP4 뽑아줘'.
   Even when the user says "make a CapCut project" or "edit this video", use this skill to ensure
-  v0.4.x CLI patterns are followed (commands, role-based animations, normalized -1..+1 color, staging).
+  v0.5.x CLI patterns are followed (commands, role-based animations, normalized -1..+1 color, staging).
 ---
 
-> **CLI version: 0.4.x** (`cli-anything-capcut --version`). v0.3 docs that mention `add-with-transition`,
+> **CLI version: 0.5.x (2026-09-01 갱신)** (`cli-anything-capcut --version`). v0.3 docs that mention `add-with-transition`,
 > `add-with-animation`, `--category` for animations, `--type` for transitions, 0–100 color values,
 > `recipe-validate`/`recipe-apply`/`save --register`/`doctor`/`alias search-all` are **outdated** —
 > see the rename table below.
+
+## ⚠️ 2026-09-01 갱신 — 이 문서는 v0.4.x 기준이었다
+
+아래 내용은 실물 검증 후 수정된 결과다. 이 스킬 문서가 v0.4.x에 멈춰 있어
+그 사이 추가·복구된 명령을 반영하지 못하고 있었다.
+
+### 죽어 있다가 살아난 명령 8종
+
+`CHANGELOG`가 "복원 완료"로 기록했지만 실제로는 **0/8 동작**이던 것들이다.
+`POSTPROCESS_OPS`에는 등록됐는데 `_OP_HANDLERS` 배선이 빠져 replay가 즉시 raise했다.
+**지금은 전부 동작한다.**
+
+```
+video reverse        video freeze-frame    video blend-mode    video chroma-key
+video lut            video speed-curve     color curves        color hsl
+```
+
+### `--font` — CapCut 에서 실제로 적용된다 (2026-09-01 해결)
+
+CapCut 이 폰트를 읽는 곳은 텍스트 material 레벨의 `font_path` / `font_resource_id` 가
+**아니라** `content` (JSON 문자열) 안의 `styles[].font = {id, path}` 다.
+처음 구현은 material 레벨만 채워서 CapCut 이 `Font: System` 으로 표시했고,
+2026-09-01 에 GUI 실측으로 원인을 찾아 고쳤다.
+
+**실측 확인** (CapCut 9.3.0):
+- `--font malgun_gothic_bold` -> `Font: Malgun Gothic Bold`
+- `--font jua` -> `Font: 한도` (CapCut 캐시 폰트)
+
+⚠️ `font` 객체에 `id` 키가 없으면 **CapCut 이 크래시한다.** 값은 빈 문자열이어도 되지만
+키 자체는 반드시 있어야 한다. 직접 draft JSON 을 손볼 일이 있으면 이 점을 지켜라.
+
+### 설치된 한글 폰트 (2026-09-01, 전부 SIL OFL 상업적 사용 자유)
+
+Google Fonts 에서 28종 53파일을 받아 사용자 폰트 폴더에 설치했다.
+로컬 별칭 324개 중 한글 계열이 145개다. 굵기 변형도 별칭으로 잡힌다.
+
+| 용도 | 별칭 예시 |
+|---|---|
+| 본문·자막 | `noto_sans_kr`, `nanum_gothic`, `gothic_a1_regular`~`gothic_a1_black`(9단계), `ibm_plex_sans_kr`, `sunflower`, `gowun_dodum` |
+| 명조 | `noto_serif_kr`, `nanum_myeongjo`, `gowun_batang`, `song_myung` |
+| 제목 | `black_han_sans`, `do_hyeon`, `jua`, `gugi` |
+| 손글씨 | `nanum_pen`, `nanum_brush_script`, `gaegu`, `gamja_flower`, `hi_melody`, `poor_story`, `single_day`, `dokdo` |
+| 장식 | `dongle`, `stylish`, `yeon_sung`, `kirang_haerang`, `cute_font` |
+
+정확한 목록은 `alias list` 대신 로컬 스캔 결과를 보라 — 설치 상태에 따라 달라진다.
+
+**쓸 수 있는 폰트는 이 PC 에 실제 파일이 있는 것뿐이다.** 실행 시 세 곳을 스캔한다:
+1. CapCut 캐시 (`User Data/Cache/effect/<resource_id>/`) — 사용자가 CapCut 에서 한 번 쓴 폰트
+2. CapCut 기본 폰트 (`User Data/Resources/Font/SystemFont/`) — `ko`, `en`, `ja`, `noto_sans` 등
+3. Windows Fonts — 한글 지원 여부는 cmap 으로 판별
+
+`FontType` enum 의 348개 별칭 중 **이 PC 에 다운로드되지 않은 것은 쓸 수 없다.**
+그런 이름을 주면 "CapCut 에 아직 다운로드되지 않은 폰트입니다" 오류로 중단된다 —
+CapCut 에서 한 번 사용하면 캐시에 받아진 뒤 쓸 수 있다.
+
+- **번들 폰트** (348개, `FontType` enum에서 생성) → `font_resource_id`
+  예: `--font alegreya`
+- **로컬 한글 TTF** (47개, 폰트 폴더 스캔 + cmap으로 한글 판별) → `font_path`
+  예: `--font malgun_gothic_bold`
+- **해석 불가한 이름은 오류로 중단한다.** 조용히 무시되지 않는다.
+
+`FontType` 348개 중 **한글 폰트는 0개**다. 한국어 자막은 반드시 로컬 TTF 경로를 써야 한다.
+
+### `--segment-ref` 는 op ID 다 (인덱스 아님)
+
+`0` 같은 인덱스를 넣으면 이제 CLI가 즉시 거부하고 `history`로 확인하라고 안내한다.
+이전에는 `status: added`로 통과한 뒤 save에서야 터졌다.
+
+### alias 별칭 107건이 정리됐다
+
+pycapcut enum에 없는 죽은 매핑이 107건 있었다. 재매핑 49 / 제거 27 / 보류 31로 결산했다.
+`scripts/alias_audit.py`로 언제든 다시 대조할 수 있다.
+**제거된 이름 예시**: `cinematic`, `classic`, `vintage`(FilterType),
+`gaussian_blur`, `motion_blur`(TransitionType), `lens_flare`, `neon`, `watercolor`(VideoSceneEffect).
+`alias list --class <클래스>`로 현재 살아있는 것을 확인하고 쓸 것.
+
+### `preset hook` 기본 호출이 된다
+
+이전에는 10개 카테고리 전부 실패했다(옵션 없이는 0/10). 지금은 10/10 통과한다.
+
+### 그 밖
+
+- `gap-detect`/`overlap-detect`가 트랙 미지정에서도 정확하다. 결과에 `track` 이름이 붙는다.
+- `merge-session`이 동명 트랙을 병합/리네임한다.
+- `review`에 참조 무결성 검사가 추가됐다.
+- pycapcut 중국어 오류가 한국어 안내로 나온다.
+
+### 아직 확인되지 않은 것
+
+**2026-09-01 GUI 실측**: CapCut 9.3.0 으로 CLI 생성 draft 를 열어 확인했다.
+- 프로젝트가 정상적으로 열리고 비디오·텍스트 세그먼트가 타임라인에 정확히 배치된다 ✅
+- 텍스트 내용과 크기는 그대로 반영된다 ✅
+- **폰트 적용됨** — 2026-09-01 수정 후 `Malgun Gothic Bold` / `한도` 로 정확히 인식 ✅
+- 8종 postprocess 효과(reverse/blend-mode/lut/speed-curve 등)의 시각 확인은 하지 못했다 —
+  CapCut 의 다중 창 구조 때문에 GUI 자동화가 막혔다. 필요하면 직접 열어 확인할 것.
+
+---
 
 ## 🎬 Brief 파악 — 3페이즈 16개 질문 (자동화 파이프라인 전용)
 
@@ -46,7 +143,7 @@ capcut-cli는 **자동화**가 목적입니다. 한 번 잘못된 브리프로 �
 영상 자동화 돌리기 전에 기획 6개만 확인할게요 (한 번에 답주시면 페이즈 2로 넘어갑니다):
 
 1) **한 줄 요약**: 어떤 영상인가요? 용도+내용을 한 문장으로.
-   예) "신규 출시한 제품을 소개하는 인스타 릴스 30초"
+   예) "신규 오픈한 호텔 객실을 소개하는 인스타 릴스 30초"
 
 2) **시청자·목적**: 누가 보고, 보고 난 뒤 뭘 하길 원해요?
    예) "20~30대 여성, 예약 페이지 방문 유도"
@@ -109,7 +206,7 @@ Phase 1에서 **영상 타입**을 감지(쇼츠·릴스/슬라이드쇼/가사/
 마지막 4개만 확인하면 렌더까지 자동으로 돌립니다. 세부 조정 없으면 "디폴트"라고만 답주세요:
 
 13) **필터·색보정 강도**: 자동(톤에 맞춤) / 사용자 지정 수치
-    디폴트 — CINEMATIC: `cinematic` 0.4 + brightness -0.05 + contrast 0.15
+    디폴트 — CINEMATIC: `golden_hour` 0.4 + brightness -0.05 + contrast 0.15
             VIVID:     `vivid` 0.5 + saturation 0.15
             MINIMAL:   필터 없음 + 기본 색감
 
@@ -143,7 +240,7 @@ Phase 1에서 **영상 타입**을 감지(쇼츠·릴스/슬라이드쇼/가사/
 | 요청 예시 | 판정 | 행동 |
 |----------|------|------|
 | "영상 하나 만들어줘" | Phase 1 전체 필요 | Phase 1 6개 질문 |
-| "제품 릴스 30초 만들어줘" | 1·3번만 답 있음 | Phase 1의 2,4,5,6번 질문 |
+| "호텔 릴스 30초 만들어줘" | 1·3번만 답 있음 | Phase 1의 2,4,5,6번 질문 |
 | "D:/사진/ 100장으로 시네마틱 슬라이드쇼 만들어줘" | 1·3·4·6번 답 있음 | Phase 1의 2,5만 물음 → Phase 2(슬라이드쇼) |
 | "쇼츠 만들어줘, 소재 D:/촬영/, 시네마틱으로" | Phase 1 대부분 커버 → Phase 2로 | Phase 2 6개 |
 | "알아서 해줘, 빨리" | 전부 위임 | `plan` 명령으로 위임, 초안 먼저 보여줌 |
@@ -155,7 +252,7 @@ Phase 1에서 **영상 타입**을 감지(쇼츠·릴스/슬라이드쇼/가사/
 ## 📋 최종 브리프 확인
 
 **기획** (Phase 1)
-- 내용: [릴스 30초 / 제품 소개]
+- 내용: [릴스 30초 / 호텔 객실 소개]
 - 타겟: [20~30대 여성 / 예약 유도]
 - 플랫폼: [인스타 릴스 9:16 / 30초]
 - 소재: [room1.mp4, room2.mp4, bgm.mp3, logo.png]
@@ -171,17 +268,17 @@ Phase 1에서 **영상 타입**을 감지(쇼츠·릴스/슬라이드쇼/가사/
 - CTA: "예약하기 링크" 27~30s title-center + bounce_in
 
 **출력** (Phase 3)
-- 필터: `cinematic` 0.4 + brightness -0.05 + contrast 0.15
+- 필터: `golden_hour` 0.4 + brightness -0.05 + contrast 0.15
 - 애니메이션: intro fade_in, outro fade_out
 - 렌더: `render` (GUI, 정확)
-- 해상도·파일: 1080P → `D:/out/reel_<timestamp>.mp4`
+- 해상도·파일: 1080P → `D:/out/hotel_reel_<timestamp>.mp4`
 
 **실행할 파이프라인** (16개 명령):
 ```bash
-cli-anything-capcut project new -n "my_reel" --preset portrait
+cli-anything-capcut project new -n "hotel_reel" --preset portrait
 cli-anything-capcut video add ...
 ...
-cli-anything-capcut render -p my_reel.session.json -o D:/out/reel.mp4 --resolution 1080P --save-first
+cli-anything-capcut render -p hotel_reel.session.json -o D:/out/hotel_reel.mp4 --resolution 1080P --save-first
 ```
 
 이대로 진행할까요?
@@ -217,7 +314,7 @@ cli-anything-capcut srt import -p my_video.session.json \
 
 # 4. 필터 + 이펙트 (트랙 자동 관리)
 cli-anything-capcut effect add-filter -p my_video.session.json \
-  --name cinematic --intensity 0.4
+  --name golden_hour --intensity 0.4
 cli-anything-capcut effect add -p my_video.session.json \
   --name vignette -s 0s -d auto
 
@@ -247,7 +344,7 @@ cli-anything-capcut project new -n "visual_only" --preset landscape
 cli-anything-capcut video add -p visual_only.session.json -f "D:/clip.mp4" -s 0s -d auto --track V1
 cli-anything-capcut audio add -p visual_only.session.json -f "D:/bgm.mp3" -s 0s -d auto --track A1 --volume 0.5
 cli-anything-capcut audio add-fade -p visual_only.session.json --track A1 --segment-ref op_1 --fade-in 1s --fade-out 2s
-cli-anything-capcut effect add-filter -p visual_only.session.json --name cinematic --intensity 0.4
+cli-anything-capcut effect add-filter -p visual_only.session.json --name golden_hour --intensity 0.4
 cli-anything-capcut keyframe add -p visual_only.session.json \
   --track V1 --segment-ref op_0 --property uniform_scale --time 0s --value 1.0
 cli-anything-capcut keyframe add -p visual_only.session.json \
@@ -268,11 +365,11 @@ cli-anything-capcut save    -p visual_only.session.json
 | 오디오 + SRT → 가사 영상 | `preset lyric-video -n NAME -a song.mp3 -s lyrics.srt -b bg.jpg --position subtitle-bottom` |
 | 기존 세션에 인트로/아웃트로 붙이기 | `preset intro-outro -p sess.json --intro intro.png --outro outro.png --transition dissolve` |
 | 메인 영상 위 PIP 오버레이 | `preset pip -p sess.json -f overlay.mp4 --corner top-right --scale 0.35` |
-| 쇼츠/릴스 첫 3초 자동 훅 (shake+zoom+flash+bold text) | `preset hook -p sess.json -t "이거 모르면 가격 30% 더 낸다" --category pattern-interrupt --duration 3s` |
+| 쇼츠/릴스 첫 3초 자동 훅 (shake+zoom+flash+bold text) | `preset hook -p sess.json -t "이거 모르면 호텔값 30% 더 낸다" --category pattern-interrupt --duration 3s` |
 | 이미지 N장 → 켄번스 슬라이드쇼 (줌/팬 키프레임 자동) | `preset kenburns -p sess.json --folder D:/images --duration-each 4s --pattern alternating --intensity 0.2` |
 
 > **언제 쓰나**: 사용자가 "이미지 폴더로 슬라이드쇼", "노래에 가사 자막", "인트로/아웃트로 붙여줘",
-> "PIP 합성", "쇼츠 첫 3초 임팩트", "제품 사진 슬라이드쇼" 같은 정형 작업을 요청할 때.
+> "PIP 합성", "쇼츠 첫 3초 임팩트", "호텔 객실 사진 슬라이드쇼" 같은 정형 작업을 요청할 때.
 > CLI 호출 5~10개를 1개로 줄임.
 
 ### `preset hook` 카테고리 (10종 — content-formulas.md 섹션 1.2)
@@ -312,7 +409,7 @@ cli-anything-capcut save    -p visual_only.session.json
 
 ```bash
 # 1. 자연어 지시 → 레시피
-cli-anything-capcut plan "30초 SaaS 제품 소개. 로고 3초 fade_in → 데모 영상 20초 + cinematic 필터 → CTA 텍스트 5초. BGM 깔고." \
+cli-anything-capcut plan "30초 SaaS 제품 소개. 로고 3초 fade_in → 데모 영상 20초 + golden_hour 필터 → CTA 텍스트 5초. BGM 깔고." \
   --width 1920 --height 1080 --duration 30s --assets-dir D:/myassets \
   -o demo.recipe.json
 
@@ -330,7 +427,7 @@ cli-anything-capcut plan-refine -i demo.recipe.json -o demo.v2.recipe.json \
 
 ---
 
-## 핵심 규칙 (v0.4.x)
+## 핵심 규칙 (v0.5.x)
 
 | 규칙 | 설명 |
 |------|------|
@@ -395,12 +492,12 @@ cli-anything-capcut plan-refine -i demo.recipe.json -o demo.v2.recipe.json \
 | 비디오 추가 | `video add -f FILE -s 0s -d auto --track V1` |
 | 이미지 추가 | `image add -f FILE -s auto -d 3s --track V1` |
 | 오디오 추가 | `audio add -f FILE -s 0s -d auto --track A1 --volume 0.5` |
-| 텍스트 추가 | `text add -t "TEXT" -s 0s -d 3s --font arial --size 6.0 --color 255,255,255 --clip-settings subtitle-bottom` |
+| 텍스트 추가 | `text add -t "TEXT" -s 0s -d 3s --font malgun_gothic --size 6.0 --color 255,255,255 --clip-settings subtitle-bottom` |
 | 텍스트 (저장된 스타일) | `text add -t "TEXT" -s 0s -d 3s --style youtube-subtitle` |
 | 텍스트 (위치 직접) | `text add -t "..." --position-x 0 --position-y -0.7` |
 | SRT 자막 | `srt import -f FILE --track T1 --style youtube-subtitle` |
-| AI 자동 자막 (v0.5.1+) | `text auto-srt --audio input.mp4 --model small --language ko --initial-prompt "도메인 전문 용어 예시"` |
-| 필터 (전역) | `effect add-filter --name cinematic --intensity 0.4` |
+| AI 자동 자막 (v0.5.1+) | `text auto-srt --audio input.mp4 --model small --language ko --initial-prompt "호텔 디럭스 스위트 트윈"` |
+| 필터 (전역) | `effect add-filter --name golden_hour --intensity 0.4` |
 | 이펙트 (전역) | `effect add --name vignette -s 0s -d auto` |
 | 트랜지션 | `video add-transition --track V1 --segment-ref op_0 --name dissolve --duration 0.7s` |
 | 비디오 인트로 | `video add-animation --track V1 --segment-ref op_0 --role intro --name fade_in` |
@@ -412,7 +509,7 @@ cli-anything-capcut plan-refine -i demo.recipe.json -o demo.v2.recipe.json \
 | 색상 휠 | `color wheels --track V1 --segment-ref op_0 --shadow-hue 220 --shadow-sat 0.15 --highlight-hue 40 --highlight-sat 0.1` |
 | 비디오 페이드 | `video add-fade --track V1 --segment-ref op_0 --fade-in 0.5s --fade-out 0.5s` |
 | 오디오 페이드 | `audio add-fade --track A1 --segment-ref op_1 --fade-in 1s --fade-out 2s` |
-| 오디오 효과 | `audio add-effect --track A1 --segment-ref op_1 --name noise-reduction` |
+| 오디오 효과 | `audio add-effect --track A1 --segment-ref op_1 --name echo` |
 | 마스크 | `mask add --track V1 --segment-ref op_0 --type circle --size 0.5 --feather 20` |
 | 배경 채우기 (블러) | `background add --track V1 --segment-ref op_0 --mode blur --blur 0.75` |
 | 배경 채우기 (단색) | `background add --track V1 --segment-ref op_0 --mode color --color "#000000"` |
@@ -455,7 +552,7 @@ cli-anything-capcut plan-refine -i demo.recipe.json -o demo.v2.recipe.json \
 | 레시피 export | `export-recipe -p p.session.json -o r.json` |
 | 스크립트 export (재현용) | `export-script -p p.session.json -o repro.sh` |
 | 스타일 프리셋 목록 | `style list` (또는 `--category text`) |
-| 스타일 프리셋 저장 | `style save MYNAME --category text --font arial --size 6 --color 255,255,255 --border '...'` |
+| 스타일 프리셋 저장 | `style save MYNAME --category text --font malgun_gothic --size 6 --color 255,255,255 --border '...'` |
 | 스타일 프리셋 적용 | `style apply-video --track V1 --segment-ref op_0 --style cinematic-warm` |
 | Staging 캐시 확인 | `staging list` / `staging stats` / `staging clear` |
 
@@ -539,13 +636,13 @@ cli-anything-capcut batch -p sess.json -f ops.json --skip-errors
 `style` 명령으로 자주 쓰는 텍스트/비디오/오디오 조합을 이름으로 저장하고 한 줄로 적용.
 
 **내장 프리셋**:
-- text: `cinematic`, `lifestyle-brand`, `minimal-caption`, `news-title`, `youtube-subtitle`
+- text: `cinematic`, `hotel-brand`, `minimal-caption`, `news-title`, `youtube-subtitle`
 - video: `cinematic-warm`, `corporate-clean`, `social-punchy`
 - audio: `bgm-background`, `podcast-voice`, `sfx-short`
 
 ```bash
 cli-anything-capcut style list
-cli-anything-capcut style save my-bold --category text --font arial --size 7 --bold --color 255,235,0 \
+cli-anything-capcut style save my-bold --category text --font malgun_gothic --size 7 --bold --color 255,235,0 \
   --border '{"alpha":1,"color":[0,0,0],"width":0.1}' --description "노란 굵은 강조"
 cli-anything-capcut style apply-video -p p.session.json --track V1 --segment-ref op_0 --style cinematic-warm
 cli-anything-capcut text add -p p.session.json -t "OPEN" --style my-bold -s 0s -d 2s
@@ -574,14 +671,16 @@ cli-anything-capcut alias resolve "fade_in"          # 영어 alias → 중문 e
 ```
 
 **자주 쓰는 alias** (검증됨):
-- **TransitionType**: dissolve, fade, blur, slide_left, slide_right, slide_up, flash, black_flash, glitch
-- **IntroType (video)**: fade_in, zoom_in, slide_up, bounce_in, blur_open
-- **OutroType (video)**: fade_out, zoom_out, blur_close, bounce_out
-- **FilterType**: cinematic, vintage, warm, cool, film, vivid, bw, dreamy, sepia
-- **VideoSceneEffectType**: vignette, blur, glitch, light_leak, soft_light, lens_flare, film_grain, bokeh
-- **TextIntro**: typewriter, fade_in, karaoke, slide_up, bounce_in
-- **TextOutro**: fade_out, dissolve_up, trail, blur_out
-- **AudioSceneEffectType**: noise-reduction, echo, reverb
+> 아래는 2026-09-01 정리 후 기준이다. 확실하지 않으면 `alias list --class <클래스>` 로 직접 확인할 것.
+
+- **TransitionType**: dissolve, cross_dissolve, fade, white_flash, black_flash, slide_left/right/up
+- **IntroType (video)**: fade_in, zoom_in, scale_up, zoom_out, slide_up/down/left/right
+- **OutroType (video)**: `alias list --class OutroType` 로 확인 (2026-09 정리로 목록이 바뀌었다)
+- **FilterType**: warm, cool, golden_hour, sunset, twilight, film_grain, bright
+- **VideoSceneEffectType**: vignette, soft, soft_light, glow, glitch, chromatic, blur
+- **TextIntro**: typewriter, typewriter_i, typewriter_ii, fade_in, karaoke, bounce, scale_up, slide_up
+- **TextOutro**: `alias list --class TextOutro` 로 확인 (2026-09 정리로 목록이 바뀌었다)
+- **AudioSceneEffectType**: echo, concert_hall, telephone, underwater, robot, chipmunk
 
 > **모르는 이름은 항상 `alias search -k "..."`로 검색**. enum은 v0.4에서도 한자 baseline.
 

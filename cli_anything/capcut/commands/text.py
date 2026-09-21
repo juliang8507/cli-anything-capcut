@@ -11,6 +11,7 @@ from pathlib import Path
 import click
 
 from cli_anything.capcut.commands.helpers import (
+    append_validated_operation,
     load_session,
     output_result,
     parse_color,
@@ -18,6 +19,7 @@ from cli_anything.capcut.commands.helpers import (
     resolve_clip_settings,
 )
 from cli_anything.capcut.core import style_registry
+from cli_anything.capcut.core.alias_map import resolve_font
 from cli_anything.capcut.core.time_utils import parse_time_value, resolve_start_time
 
 
@@ -100,6 +102,13 @@ def text_add(ctx, project_path, text, start, duration, track, font, size, bold, 
     shadow_dict = merged.get("shadow")
     clip_dict = merged.get("clip_settings")
 
+    font_patch: dict[str, str] = {}
+    if font is not None:
+        try:
+            font_patch = resolve_font(font)
+        except KeyError as e:
+            raise click.ClickException(str(e.args[0])) from e
+
     # position-x/y 가 따로 들어왔으면 clip_settings에 머지
     if position_x is not None or position_y is not None:
         clip_dict = dict(clip_dict) if clip_dict else {}
@@ -113,7 +122,6 @@ def text_add(ctx, project_path, text, start, duration, track, font, size, bold, 
         "start": resolve_start_time(session.data, start, track_name=track),
         "duration": duration,
         "track": track,
-        "font": font,
         "size": size,
         "bold": bold,
         "italic": italic,
@@ -129,17 +137,29 @@ def text_add(ctx, project_path, text, start, duration, track, font, size, bold, 
     result = session.append_operation("add_text", args)
     text_op_id = result.get("id")
 
-    # patch-style 모드: 동일 세그먼트에 대해 postprocess op도 추가
+    # --font는 항상 기존 postprocess font_path/font_resource_id 배선으로 보낸다.
+    # --patch-style은 나머지 pycapcut 미반영 스타일 필드까지 같은 op에 합친다.
+    patch_args = {
+        "track": track,
+        "segment_ref": text_op_id,
+        **font_patch,
+    }
     if patch_style:
-        with session.batch():
-            patch_args = {
-                "track": track,
-                "segment_ref": text_op_id,
+        patch_args.update(
+            {
                 "color": color_arr,
                 "border": border_dict,
                 "shadow": shadow_dict,
             }
-            session.append_operation("text_style_patch", patch_args, _status="queued")
+        )
+    queue_style_patch = bool(font_patch) or (
+        patch_style
+        and any(value is not None for value in (color_arr, border_dict, shadow_dict))
+    )
+    if queue_style_patch or (patch_style and (position_x is not None or position_y is not None)):
+        with session.batch():
+            if queue_style_patch:
+                session.append_operation("text_style_patch", patch_args, _status="queued")
             if position_x is not None or position_y is not None:
                 tr_args = {"track": track, "segment_ref": text_op_id}
                 if position_x is not None:
@@ -155,14 +175,15 @@ def text_add(ctx, project_path, text, start, duration, track, font, size, bold, 
 @text_group.command("add-animation", help="텍스트 세그먼트에 애니메이션 추가")
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--track", required=True)
-@click.option("--segment-ref", required=True)
+@click.option("--segment-ref", required=True, help="세그먼트 참조 (op ID)")
 @click.option("--role", type=click.Choice(["intro", "outro", "loop"]), default="intro")
 @click.option("--name", required=True)
 @click.option("--duration", default="500ms", show_default=True)
 @click.pass_context
 def text_add_animation(ctx, project_path, track, segment_ref, role, name, duration):
     session = load_session(project_path)
-    result = session.append_operation(
+    result = append_validated_operation(
+        session,
         "add_text_animation",
         {"track": track, "segment_ref": segment_ref, "role": role,
          "name": name, "duration": duration},
@@ -174,7 +195,7 @@ def text_add_animation(ctx, project_path, track, segment_ref, role, name, durati
                     help="기존 텍스트 세그먼트의 스타일/위치를 save 후 패치 (버그 #17~#21 회피)")
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--track", required=True)
-@click.option("--segment-ref", required=True)
+@click.option("--segment-ref", required=True, help="세그먼트 참조 (op ID)")
 @click.option("--font-path", default=None, help="폰트 절대 경로 (TTF/OTF)")
 @click.option("--font-resource-id", default=None, help="CapCut 폰트 resource_id")
 @click.option("--color", default=None)
@@ -192,6 +213,9 @@ def text_style_patch(ctx, project_path, track, segment_ref, font_path, font_reso
 
     queued: list[dict] = []
     with session.batch():
+        # 이 명령은 대상이 없어도 postprocess warning/no-op으로 기록하는 기존
+        # 복원력 계약이 있다. 일반 segment op의 CLI 선검증과 달리 관대한 API를
+        # 유지한다 (test_postprocess_count_excludes_patch_that_changed_nothing).
         # 스타일 패치
         if any(x is not None for x in (font_path, font_resource_id, color_arr, border_dict, shadow_dict)):
             queued.append(session.append_operation(
@@ -368,7 +392,7 @@ def srt_import(ctx, project_path, file, track, font, style_name, style_json, cli
 @click.option("--word-level/--segment-level", "word_level", default=True, show_default=True,
               help="단어 단위 타임스탬프 (word-level) vs 세그먼트 단위 (segment-level)")
 @click.option("--initial-prompt", default=None,
-              help="한국어 도메인 힌트 (예: 'Product Pro Max 256GB')")
+              help="한국어 도메인 힌트 (예: '호텔 디럭스 스위트 트윈')")
 @click.option("--output-dir", default=None,
               help="SRT 파일 저장 경로 (기본: 임시 디렉토리)")
 @click.option("--keep-srt/--no-keep-srt", default=False, show_default=True,

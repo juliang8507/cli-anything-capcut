@@ -32,7 +32,7 @@ def effect_add(ctx, project_path, name, start, duration, track):
     output_result(result, ctx.obj["json"])
 
 
-@effect_group.command("add-filter", help="필터 추가 (warm, cinematic, bw, ...)")
+@effect_group.command("add-filter", help="필터 추가 (warm, golden_hour, bw_2, ...)")
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--name", required=True)
 @click.option("-s", "--start", default="auto", show_default=True)

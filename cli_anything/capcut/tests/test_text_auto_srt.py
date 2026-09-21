@@ -190,7 +190,7 @@ class TestAutoSrtInitialPrompt:
         _make_srt(out_dir, "hotel")
 
         captured: list[list] = []
-        prompt_text = "Product Pro Max 256GB"
+        prompt_text = "호텔 디럭스 스위트 트윈"
 
         def fake_run(cmd, **kwargs):
             captured.append(list(cmd))

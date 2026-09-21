@@ -7,6 +7,7 @@ from typing import Any, Callable
 
 import click
 
+from cli_anything.capcut.core.op_registry import CREATION_OPS
 from cli_anything.capcut.core.session import Session, SessionError
 
 
@@ -44,6 +45,65 @@ def load_session(project_path: str) -> Session:
         return Session.load(project_path)
     except SessionError as e:
         raise click.ClickException(str(e))
+
+
+def validate_segment_ref(
+    session: Session,
+    segment_ref: str,
+    track: str | None = None,
+) -> dict:
+    """사람이 CLI에 입력한 segment op ID를 append 전에 검증한다.
+
+    ``Session.append_operation()``은 auto-fix quarantine을 위해 의도적으로
+    관대하므로, 이 검증은 CLI 명령에서만 호출한다.
+    """
+    operations = session.data.get("operations", [])
+    referenced = next(
+        (operation for operation in operations if operation.get("id") == segment_ref),
+        None,
+    )
+    if referenced is None:
+        if str(segment_ref).lstrip("+-").isdigit():
+            raise click.ClickException(
+                f"segment_ref '{segment_ref}'는 인덱스처럼 보입니다. "
+                "인덱스가 아니라 op ID(예: op_5)를 넣어야 합니다. "
+                "`history`로 op ID를 확인하세요."
+            )
+        raise click.ClickException(
+            f"segment_ref '{segment_ref}'에 해당하는 op가 세션에 존재하지 않습니다. "
+            "`history`로 세그먼트 op ID를 확인하세요."
+        )
+
+    op_type = referenced.get("op")
+    if op_type not in CREATION_OPS:
+        raise click.ClickException(
+            f"segment_ref '{segment_ref}'가 가리키는 {op_type!r} op는 "
+            "세그먼트를 만드는 op가 아닙니다. `history`에서 add_video, add_image, "
+            "add_audio, add_text 등의 op ID를 선택하세요."
+        )
+
+    referenced_track = (referenced.get("args") or {}).get("track")
+    if track is not None and referenced_track != track:
+        raise click.ClickException(
+            f"segment_ref '{segment_ref}'의 세그먼트는 트랙 "
+            f"'{referenced_track}'에 있으며, 지정한 --track은 '{track}'입니다. "
+            "`history`에서 같은 트랙의 세그먼트 op ID를 확인하세요."
+        )
+    return referenced
+
+
+def append_validated_operation(
+    session: Session,
+    op: str,
+    args: dict,
+    *,
+    _status: str = "added",
+) -> dict:
+    """CLI에서 segment_ref를 검증한 뒤 Session의 관대한 append API를 호출한다."""
+    segment_ref = (args or {}).get("segment_ref")
+    if segment_ref is not None:
+        validate_segment_ref(session, segment_ref, (args or {}).get("track"))
+    return session.append_operation(op, args, _status=_status)
 
 
 def parse_json_option(value: str | None, name: str = "option") -> dict | None:

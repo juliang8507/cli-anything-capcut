@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import click
 
-from cli_anything.capcut.commands.helpers import load_session, output_result
+from cli_anything.capcut.commands.helpers import (
+    append_validated_operation,
+    load_session,
+    output_result,
+)
 
 
 @click.group("mask", help="마스크 (원형/사각/하트 등)")
@@ -15,7 +19,7 @@ def mask_group():
 @mask_group.command("add", help="비디오 세그먼트에 마스크 추가")
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--track", required=True)
-@click.option("--segment-ref", required=True)
+@click.option("--segment-ref", required=True, help="세그먼트 참조 (op ID)")
 @click.option("--name", required=True,
               help="마스크 타입 (circle, rectangle, heart, star, linear, mirror)")
 @click.option("--center-x", type=float, default=None, help="마스크 중심 X (픽셀)")
@@ -45,7 +49,7 @@ def mask_add(ctx, project_path, track, segment_ref, name, center_x, center_y, si
         "rect_width": rect_width,
         "round_corner": round_corner,
     }
-    result = session.append_operation("add_mask", args)
+    result = append_validated_operation(session, "add_mask", args)
     output_result(result, ctx.obj["json"])
 
 
@@ -57,7 +61,7 @@ def background_group():
 @background_group.command("add", help="blur 또는 color 배경 채우기")
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--track", required=True)
-@click.option("--segment-ref", required=True)
+@click.option("--segment-ref", required=True, help="세그먼트 참조 (op ID)")
 @click.option("--fill-type", type=click.Choice(["blur", "color"]), default="blur")
 @click.option("--blur", type=float, default=0.0625,
               help="블러 강도 0~1 (fill_type=blur)")
@@ -73,5 +77,5 @@ def background_add(ctx, project_path, track, segment_ref, fill_type, blur, color
         "blur": blur,
         "color": color,
     }
-    result = session.append_operation("add_background", args)
+    result = append_validated_operation(session, "add_background", args)
     output_result(result, ctx.obj["json"])

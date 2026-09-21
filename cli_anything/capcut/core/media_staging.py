@@ -7,7 +7,7 @@ CapCut/JianYing은 한글 · 공백 · 기타 비ASCII 경로의 미디어 파�
 전체 흐름
 ---------
 
-1. 사용자: ``cli-anything-capcut video add -f "D:/media/my-video.mp4" ...``
+1. 사용자: ``cli-anything-capcut video add -f "D:/소재/호텔/영상.mp4" ...``
 2. ``commands/media.py`` 의 ``_segment_add`` 가 :func:`stage_media` 를 호출
 3. 반환된 영문 경로가 세션 op log 의 ``file`` 필드에 기록됨
 4. CapCut 은 영문 경로로 미디어를 읽어 정상 로드

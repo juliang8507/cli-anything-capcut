@@ -7,7 +7,11 @@ from __future__ import annotations
 
 import click
 
-from cli_anything.capcut.commands.helpers import load_session, output_result
+from cli_anything.capcut.commands.helpers import (
+    append_validated_operation,
+    load_session,
+    output_result,
+)
 
 
 _COLOR_KEYFRAME_PROPS = {
@@ -26,7 +30,7 @@ def color_group():
 @color_group.command("adjust", help="밝기/대비/채도/하이라이트/그림자 등 조정")
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--track", required=True)
-@click.option("--segment-ref", required=True)
+@click.option("--segment-ref", required=True, help="세그먼트 참조 (op ID)")
 @click.option("--brightness", type=float, default=None, help="-1.0~+1.0")
 @click.option("--contrast", type=float, default=None)
 @click.option("--saturation", type=float, default=None)
@@ -49,14 +53,16 @@ def color_adjust(ctx, project_path, track, segment_ref, brightness, contrast, sa
         "shadows": shadows,
         "vibrance": vibrance,
     }
-    result = session.append_operation("color_adjust", args, _status="queued")
+    result = append_validated_operation(
+        session, "color_adjust", args, _status="queued",
+    )
     output_result(result, ctx.obj["json"])
 
 
 @color_group.command("wheels", help="컬러 휠 (shadows/midtones/highlights)")
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--track", required=True)
-@click.option("--segment-ref", required=True)
+@click.option("--segment-ref", required=True, help="세그먼트 참조 (op ID)")
 @click.option("--shadows-color", default=None,
               help='r,g,b 형식. 예: "0,0,255"')
 @click.option("--midtones-color", default=None)
@@ -74,7 +80,9 @@ def color_wheels(ctx, project_path, track, segment_ref, shadows_color,
         "midtones_color": parse_color(midtones_color),
         "highlights_color": parse_color(highlights_color),
     }
-    result = session.append_operation("color_wheels", args, _status="queued")
+    result = append_validated_operation(
+        session, "color_wheels", args, _status="queued",
+    )
     output_result(result, ctx.obj["json"])
 
 
@@ -134,7 +142,8 @@ def color_curves(ctx, project_path, track, segment_ref, rgb, red, green, blue):
     blue_pts = _parse_curve_points(blue) if blue else None
 
     session = load_session(project_path)
-    result = session.append_operation(
+    result = append_validated_operation(
+        session,
         "add_color_curves",
         {
             "track": track,
@@ -168,7 +177,8 @@ _HSL_TARGET_CHOICES = ["red", "orange", "yellow", "green", "cyan", "blue", "purp
 @click.pass_context
 def color_hsl(ctx, project_path, track, segment_ref, target, hue, saturation, lightness):
     session = load_session(project_path)
-    result = session.append_operation(
+    result = append_validated_operation(
+        session,
         "add_hsl_adjust",
         {
             "track": track,

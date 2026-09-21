@@ -14,10 +14,12 @@
 - ``resolution``  : 프로젝트 해상도 vs 소스 (ffprobe 있을 때만)
 - ``duration``    : 플랫폼별 길이 적합성 (9:16 / 16:9 / 총 0초)
 - ``render``      : render-headless 호환성
+- ``references``  : 세그먼트 extra_material_refs 참조 무결성
 """
 
 from __future__ import annotations
 
+import json
 import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -27,7 +29,7 @@ import click
 
 from cli_anything.capcut.commands.helpers import load_session, output_result
 from cli_anything.capcut.core.op_registry import CREATION_OPS
-from cli_anything.capcut.core.session import Session
+from cli_anything.capcut.core.session import Session, SessionError
 from cli_anything.capcut.core.time_utils import (
     format_us,
     get_media_duration,
@@ -55,6 +57,9 @@ _CHECK_ALIASES: dict[str, str] = {
     "length": "duration",
     "renderable": "render",
     "render_headless": "render",
+    "ref": "references",
+    "reference": "references",
+    "integrity": "references",
 }
 
 # 지원 체크 이름 (_run_checks 에서 자동 채움)
@@ -67,6 +72,7 @@ _ALL_CHECKS: list[str] = [
     "resolution",
     "duration",
     "render",
+    "references",
 ]
 
 
@@ -506,6 +512,68 @@ def check_unsupported_for_render(session: Session) -> list[Finding]:
     return findings
 
 
+def check_reference_integrity(session: Session) -> list[Finding]:
+    """Warn when a segment extra_material_ref has no matching id in the draft."""
+    try:
+        draft = json.loads(session.replay().dumps())
+    except SessionError as error:
+        return [
+            Finding(
+                check="references",
+                severity="info",
+                message=(
+                    "replay 실패로 extra_material_refs 무결성 체크를 건너뜀 "
+                    f"({type(error).__name__}: {error})"
+                ),
+                hint="먼저 validate에서 replay 오류를 해결하세요.",
+            )
+        ]
+
+    known_ids: set[str] = set()
+
+    def collect_ids(value: Any) -> None:
+        if isinstance(value, dict):
+            identifier = value.get("id")
+            if isinstance(identifier, str):
+                known_ids.add(identifier)
+            for child in value.values():
+                collect_ids(child)
+        elif isinstance(value, list):
+            for child in value:
+                collect_ids(child)
+
+    collect_ids(draft)
+
+    findings: list[Finding] = []
+    for track in draft.get("tracks", []):
+        track_name = track.get("name") or track.get("id") or "?"
+        for segment in track.get("segments", []):
+            segment_id = segment.get("id") or "?"
+            for ref_id in segment.get("extra_material_refs", []):
+                if ref_id in known_ids:
+                    continue
+                findings.append(
+                    Finding(
+                        check="references",
+                        severity="warning",
+                        message=(
+                            f"{track_name} 세그먼트 {segment_id}의 extra_material_refs가 "
+                            f"draft에 없는 material id {ref_id}를 참조"
+                        ),
+                        hint=(
+                            "저장된 draft의 materials 컨테이너를 확인하세요. "
+                            "CapCut GUI의 처리 결과는 이 검사만으로 판정할 수 없습니다."
+                        ),
+                        location={
+                            "track": track_name,
+                            "segment_id": segment_id,
+                            "ref_id": ref_id,
+                        },
+                    )
+                )
+    return findings
+
+
 # =========================================================================
 # 메인 오케스트레이션
 # =========================================================================
@@ -520,6 +588,7 @@ _CHECK_FUNCS: dict[str, Any] = {
     "resolution": check_resolution_mismatch,
     "duration": check_duration,
     "render": check_unsupported_for_render,
+    "references": check_reference_integrity,
 }
 
 
@@ -675,7 +744,7 @@ def _normalize_check_names(names: list[str]) -> list[str]:
 
 @click.command(
     "review",
-    help="세션 자동 리뷰 (갭/겹침/볼륨/자막속도/미디어/해상도/길이/렌더호환)",
+    help="세션 자동 리뷰 (갭/겹침/볼륨/자막속도/미디어/해상도/길이/렌더호환/참조무결성)",
 )
 @click.option("-p", "--project", "project_path", required=True,
               help="세션 JSON 파일 경로")
@@ -689,7 +758,10 @@ def _normalize_check_names(names: list[str]) -> list[str]:
 @click.option(
     "--only",
     default=None,
-    help="특정 체크만 (쉼표 구분): gaps,overlaps,volume,subtitles,media,resolution,duration,render",
+    help=(
+        "특정 체크만 (쉼표 구분): "
+        "gaps,overlaps,volume,subtitles,media,resolution,duration,render,references"
+    ),
 )
 @click.option(
     "--fail-on-warning",

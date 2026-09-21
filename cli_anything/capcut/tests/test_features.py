@@ -16,7 +16,7 @@ def _run(args: list[str]) -> subprocess.CompletedProcess:
     env = os.environ.copy()
     env["PYTHONIOENCODING"] = "utf-8"
     # 기존 회귀 테스트는 스테이징 도입 전에 작성됨 — 원본 경로가 세션에 그대로
-    # 저장된다는 가정을 유지한다. 한글 사용자명 환경(C:\Users\<korean-name>\...)에서
+    # 저장된다는 가정을 유지한다. 한글 사용자명 환경(C:\Users\<non-ASCII name>\...)에서
     # tmp_path 가 비ASCII라 의도치 않게 스테이징되어 회귀가 깨지는 것을 방지.
     env.setdefault("CAPCUT_NO_STAGING", "1")
     return subprocess.run([CLI, *args], capture_output=True, text=True, encoding="utf-8", env=env)

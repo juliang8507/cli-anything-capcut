@@ -28,8 +28,8 @@ class TestNeedsStaging:
         assert needs_staging("C:\\videos\\file-01_v2.mp4") is False
 
     def test_hangul_needs_staging(self):
-        assert needs_staging("D:/한글폴더/영상.mp4") is True
-        assert needs_staging("/tmp/한국어/영상.mp4") is True
+        assert needs_staging("D:/소재/영상.mp4") is True
+        assert needs_staging("/tmp/호텔/영상.mp4") is True
 
     def test_space_needs_staging(self):
         assert needs_staging("D:/My Videos/clip.mp4") is True
@@ -52,7 +52,7 @@ class TestNeedsStaging:
 
 
 def _ascii_root() -> Path:
-    """테스트용 ASCII 루트. 한글 사용자명 (C:\\Users\\<korean-name>\\...) 환경 대응.
+    """테스트용 ASCII 루트. 한글 사용자명 (C:\\Users\\<non-ASCII name>\\...) 환경 대응.
 
     ``tmp_path`` 가 한글 경로 하위라면 ``needs_staging`` 가 항상 True 가 되어
     ASCII-only / staging 동작을 구분 검증할 수 없다. 그래서 OS 루트의 ASCII
@@ -92,7 +92,7 @@ def isolated_cache(ascii_root, monkeypatch):
     return cache
 
 
-def _make_hangul_file(root: Path, name: str = "한글_영상.mp4",
+def _make_hangul_file(root: Path, name: str = "호텔_영상.mp4",
                       content: bytes = b"\x00\x01\x02 fake mp4") -> Path:
     d = root / "한글폴더"
     d.mkdir(parents=True, exist_ok=True)

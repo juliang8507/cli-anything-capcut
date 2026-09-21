@@ -27,7 +27,7 @@ class TestBuiltins:
     def test_builtin_text_has_five_presets(self):
         b = style_registry.builtin_styles("text")
         assert set(b.keys()) >= {
-            "lifestyle-brand", "youtube-subtitle", "news-title",
+            "hotel-brand", "youtube-subtitle", "news-title",
             "minimal-caption", "cinematic",
         }
 
@@ -37,7 +37,8 @@ class TestBuiltins:
         # 카테고리 특화 필드가 실제로 들어있어야
         warm = b["cinematic-warm"]
         assert isinstance(warm.get("filter"), dict)
-        assert warm["filter"].get("name") == "cinematic"
+        # 이전 값 `cinematic` 은 FilterType enum 에 없어 실제로 동작하지 않았다.
+        assert warm["filter"].get("name") == "golden_hour"
         assert isinstance(warm.get("animation_intro"), dict)
         assert isinstance(warm.get("animation_outro"), dict)
 
@@ -46,30 +47,31 @@ class TestBuiltins:
         assert set(b.keys()) >= {"podcast-voice", "bgm-background", "sfx-short"}
         voice = b["podcast-voice"]
         assert voice["volume"] == 0.9
-        assert voice.get("effect", {}).get("name") == "noise-reduction"
+        # 이전 값 `noise-reduction` 은 AudioSceneEffectType enum 에 없어 제거했다.
 
     def test_builtin_all_returns_categorized(self):
         """카테고리 없이 호출하면 {category: {name: spec}} 형태."""
         b = style_registry.builtin_styles()
         assert "text" in b and "video" in b and "audio" in b
-        assert "lifestyle-brand" in b["text"]
+        assert "hotel-brand" in b["text"]
         assert "cinematic-warm" in b["video"]
 
     def test_builtin_is_deep_copy(self):
         """반환값 mutate 가 원본을 오염시키지 않아야."""
         b = style_registry.builtin_styles("text")
-        b["lifestyle-brand"]["size"] = 999.0
+        b["hotel-brand"]["size"] = 999.0
         b2 = style_registry.builtin_styles("text")
-        assert b2["lifestyle-brand"]["size"] != 999.0
+        assert b2["hotel-brand"]["size"] != 999.0
 
     def test_get_builtin_style_text(self):
-        spec = style_registry.get_style("lifestyle-brand")  # 기본 category=text
+        spec = style_registry.get_style("hotel-brand")  # 기본 category=text
         assert spec["font"]
         assert spec["size"] > 0
 
     def test_get_builtin_style_video(self):
         spec = style_registry.get_style("cinematic-warm", category="video")
-        assert spec["filter"]["name"] == "cinematic"
+        # 이전 값 `cinematic` 은 FilterType enum 에 없어 실제로 동작하지 않았다.
+        assert spec["filter"]["name"] == "golden_hour"
 
     def test_get_builtin_style_audio(self):
         spec = style_registry.get_style("podcast-voice", category="audio")
@@ -172,7 +174,7 @@ class TestCRUDRoundtrip:
         style_registry.save_style("s1", {"font": "arial", "size": 5.0})
         names = [(r["category"], r["name"]) for r in style_registry.list_styles()]
         assert ("text", "s1") in names
-        assert ("text", "lifestyle-brand") in names
+        assert ("text", "hotel-brand") in names
         assert ("video", "cinematic-warm") in names
         assert ("audio", "podcast-voice") in names
 
@@ -190,13 +192,13 @@ class TestCRUDRoundtrip:
     def test_list_marks_builtin_flag(self):
         rows = style_registry.list_styles("text")
         by_name = {r["name"]: r for r in rows}
-        assert by_name["lifestyle-brand"]["builtin"] is True
+        assert by_name["hotel-brand"]["builtin"] is True
 
     def test_builtin_collision_rejected_per_category(self):
         with pytest.raises(ValueError):
-            style_registry.save_style("lifestyle-brand", {"font": "x"})
-        # 다른 카테고리에서는 OK (video 에는 lifestyle-brand 가 없음)
-        style_registry.save_style("lifestyle-brand", {"filter": {"name": "warm"}},
+            style_registry.save_style("hotel-brand", {"font": "x"})
+        # 다른 카테고리에서는 OK (video 에는 hotel-brand 가 없음)
+        style_registry.save_style("hotel-brand", {"filter": {"name": "warm"}},
                                   category="video")
 
     def test_delete_text(self):
@@ -214,10 +216,10 @@ class TestCRUDRoundtrip:
         assert style_registry.delete_style("not-there") is False
 
     def test_delete_builtin_returns_false(self):
-        assert style_registry.delete_style("lifestyle-brand") is False
+        assert style_registry.delete_style("hotel-brand") is False
         assert style_registry.delete_style("cinematic-warm", category="video") is False
         # 여전히 get 가능
-        style_registry.get_style("lifestyle-brand")
+        style_registry.get_style("hotel-brand")
         style_registry.get_style("cinematic-warm", category="video")
 
     def test_duplicate_save_raises_without_overwrite(self):
@@ -340,7 +342,7 @@ class TestMergeOverrides:
 
     def test_internal_markers_stripped(self):
         out = style_registry.merge_style_with_overrides(
-            "lifestyle-brand", {"size": 7.0}
+            "hotel-brand", {"size": 7.0}
         )
         assert "_description" not in out
         assert "_builtin" not in out
@@ -467,9 +469,8 @@ class TestApplyAudioStyle:
 
         op_types = [o["op"] for o in sess.data["operations"][1:]]
         assert "add_audio_fade" in op_types
-        assert "add_audio_effect" in op_types
-        # appended 는 fade + effect (volume 은 edit 이라 append 에 없음)
-        assert len(appended) == 2
+        # `noise-reduction` 은 실제 enum 에 없어 effect 를 제거했고 fade 만 추가된다.
+        assert len(appended) == 1
 
     def test_bgm_background_no_effect(self):
         sess = _FakeSession([

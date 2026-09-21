@@ -19,6 +19,7 @@ from cli_anything.capcut.commands.helpers import (
     parse_color,
     parse_json_option,
     resolve_clip_settings,
+    validate_segment_ref,
 )
 from cli_anything.capcut.core import style_registry
 
@@ -131,7 +132,7 @@ def style_show(ctx, name, category):
 @click.option("--clip-settings", default=None, help="프리셋(subtitle-bottom 등) 또는 JSON")
 # --- video 전용 옵션 ---
 @click.option("--filter", "filter_json", default=None,
-              help='(video) JSON: \'{"name":"cinematic","intensity":40}\'')
+              help='(video) JSON: \'{"name":"golden_hour","intensity":40}\'')
 @click.option("--animation-intro", default=None,
               help='(video) JSON: \'{"name":"fade_in","duration":"0.5s"}\'')
 @click.option("--animation-outro", default=None,
@@ -355,7 +356,7 @@ def style_import(ctx, input_path, overwrite, category):
                                           "(filter + intro/outro + color)")
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--track", required=True, help="대상 트랙")
-@click.option("--segment-ref", required=True, help="대상 세그먼트 op id")
+@click.option("--segment-ref", required=True, help="세그먼트 참조 (op ID)")
 @click.option("--style", "style_name", required=True, help="적용할 video 프리셋 이름")
 @click.option("--override", default=None,
               help='프리셋 필드 오버라이드 JSON 예: '
@@ -363,6 +364,7 @@ def style_import(ctx, input_path, overwrite, category):
 @click.pass_context
 def style_apply_video(ctx, project_path, track, segment_ref, style_name, override):
     session = load_session(project_path)
+    validate_segment_ref(session, segment_ref, track)
     overrides = parse_json_option(override, "override") or {}
 
     try:
@@ -392,13 +394,14 @@ def style_apply_video(ctx, project_path, track, segment_ref, style_name, overrid
                                           "(volume + fade + effect)")
 @click.option("-p", "--project", "project_path", required=True)
 @click.option("--track", required=True, help="대상 트랙")
-@click.option("--segment-ref", required=True, help="대상 세그먼트 op id")
+@click.option("--segment-ref", required=True, help="세그먼트 참조 (op ID)")
 @click.option("--style", "style_name", required=True, help="적용할 audio 프리셋 이름")
 @click.option("--override", default=None,
               help='프리셋 필드 오버라이드 JSON 예: \'{"volume":0.5}\'')
 @click.pass_context
 def style_apply_audio(ctx, project_path, track, segment_ref, style_name, override):
     session = load_session(project_path)
+    validate_segment_ref(session, segment_ref, track)
     overrides = parse_json_option(override, "override") or {}
 
     try:

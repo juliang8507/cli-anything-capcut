@@ -1,13 +1,95 @@
 # Changelog
 
-## 0.5.1 — 2026-04-19
+> **완료 판정 기준:** op 를 추가한 기능은 CLI 실행 -> save -> 산출 draft 필드 확인까지 통과해야 완료로 적는다.
+> 그리고 **사용자가 눈으로 보는 결과(폰트·효과 등 렌더 결과)를 바꾸는 기능은 CapCut GUI 에서
+> 실제로 반영되는지 확인해야** 완료로 적는다 — draft 에 필드가 있어도 CapCut 이 읽지 않으면
+> 사용자에게는 아무 일도 일어나지 않는다 (2026-09-01 폰트 실측으로 확인, docs/capcut-gui-verification.md).
+
+## 0.5.2 - 2026-09-21 (공개 저장소 동기화)
+
+이전 공개본(2026-04-27)과 개발 저장소의 격차를 해소한 릴리스다.
+
+- **수정**: 이전 공개본은 `POSTPROCESS_OPS` 배선 누락으로
+  `video reverse` / `freeze-frame` / `blend-mode` / `chroma-key` / `lut` / `speed-curve`,
+  `color curves` / `hsl` 8종이 실행 즉시 예외를 냈다. 해당 경로를 복구했다.
+- **신규**: `import-draft`(CapCut GUI draft 역변환), `text auto-srt`(whisper 자동 자막),
+  `gap-detect` / `overlap-detect`, `merge-session`, 사용자 폰트 폴더 스캔.
+- **테스트**: 309 -> 396 passed. CLI -> replay -> save 전 구간을 지나는
+  E2E 매트릭스로 8종 각각의 draft delta를 검증한다.
+- **문서**: Claude Code 스킬(`claude-skill/`)을 2026-09-01 기준으로 갱신했다.
+
+## 0.5.1 — 2026-09-01 (검증 복구)
+
+### R16 — CapCut GUI 프로젝트 import 실전 대응
+
+- CapCut GUI가 만든 draft는 트랙 `name`이 전부 빈 문자열이라 `import-draft` 결과가 `_default_` 한 트랙으로 뭉쳤다. 트랙별 gap/overlap 검사가 통째로 무의미해지던 것을 타입별 자동 명명(`V1`/`T1`/`A1`/`E1`/`S1`/`F1`, 기존 이름은 보존·충돌 회피)으로 고쳤다.
+- 미디어 경로가 `##_draftpath_placeholder_<UUID>_##/...` 플레이스홀더로 남아 `media` 검사가 전부 무용지물이던 것을 draft 폴더 기준 절대경로 치환으로 고쳤다. 절대경로는 그대로 두고, 치환 후 파일이 없고 실제 참조된 소재만 경고한다.
+- 실물 검증: 실제 CapCut GUI 프로젝트(27트랙 78세그먼트 2:54)에서 27트랙 전부 명명·24개 경로 치환 확인. 396 passed.
+
+### R0 — 독립 저장소와 기준선
+
+- 독립 git 저장소와 baseline을 구성했다.
+- 복구 시험에서 `core.autocrlf=true`가 LF -> CRLF 변환으로 롤백 해시를 바꾸는 것을 발견해 껐다.
+
+### R1 — 실제 저장 경로 E2E
+
+- CLI -> replay -> save를 타고 산출 draft 필드까지 확인하는 E2E 매트릭스 테스트를 신설했으며, 실패하는 red 상태를 먼저 커밋했다.
+
+### R2 — postprocess replay 배선
+
+- `POSTPROCESS_OPS`를 단일 소스로 순회해 8종 postprocess op를 replay에 배선했다. op 이름을 별도로 하드코딩하지 않았다.
+- `setdefault(k, {})`가 무력화되는 3곳에 타입 가드를 추가했다. pycapcut이 `track_attribute`를 int, `curve_speed`를 None으로 만드는 경우를 처리한다.
+
+### R3 — alias 감사
+
+- 죽은 alias 매핑 107건을 remapped 49 / removed 27 / deferred 31로 결산했다.
+- 재실행 가능한 감사 스크립트 `scripts/alias_audit.py`와 manifest를 남겼다.
+
+### R4 — preset hook
+
+- `preset hook` 기본 호출을 0/10에서 10/10으로 복구했다.
+- `add_effect` 트랙 자동 배정을 `Session.append_operation()` 한 곳에 두고, 존재하지 않던 별칭 `pop` -> `bounce`, `flash` -> `glow`로 교체했다.
+
+### R5 — `--font` 이중 경로
+
+- `--font`를 번들 `resource_id` 348개와 로컬 TTF `font_path` 47개 두 경로로 연결했다.
+- 번들 목록은 `FontType`에서 기계 생성하고, 로컬 목록은 폰트 폴더 스캔과 cmap 검사로 한글 지원 여부를 판별한다.
+- 해석할 수 없는 이름은 오류로 중단하며, `postprocess_applied`는 실제 변경분만 집계한다.
+
+### R6 — 트랙별 gap/overlap 검사
+
+- `gap-detect`/`overlap-detect`가 track 미지정 시 전 트랙을 한 타임라인으로 뭉치던 동작을 트랙별 순회로 수정했다.
+- 결과에 track 이름을 포함한다.
+
+### R7 — `segment_ref` 경계 검증
+
+- CLI 경계에서 `segment_ref`를 검증하고, pycapcut의 중국어 트랙 예외 4종을 한국어로 변환했다.
+- `--segment-ref` help를 22개 명령에서 통일했다.
+- **`Session.append_operation()`은 건드리지 않았다.** `core/auto_fix.py`의 quarantine이 "잘못된 segment_ref를 수용한 뒤 격리한다"를 전제로 한 의도된 복원력 설계이기 때문이다.
+
+### R8 — 세션 병합
+
+- `merge-session`에 동명 트랙 병합/리네임 정책을 적용했다.
+
+### R11 — dangling material 참조
+
+- 텍스트 기본 1건은 pycapcut 책임으로 확인해 수정하지 않았다.
+- 8개 modifier op의 추가 1건은 cli_anything의 호출 순서 문제로 확인해 수정했다.
+- `review`에 참조 무결성 검사를 추가했다.
+
+### 테스트와 검증 범위
+
+- 전체 테스트: **309 -> 374 passed**.
+- CapCut GUI 검증은 수행하지 않았다.
+
+## 0.5.1 — 2026-04-19 (최초 기록)
 
 ### 신규 — `text auto-srt` 서브커맨드 (whisper CLI 연동 자동 자막)
 
 - **`text auto-srt`**: 오디오/영상 파일을 받아 `whisper` CLI를 subprocess로 호출 → SRT 자동 생성 → 기존 `srt import` 로직으로 세션에 연결. 한 줄 명령으로 자막 자동 생성.
   - `text auto-srt -p session.json --audio interview.mp4 --model small --language ko`
   - `--word-level/--segment-level`: 단어 단위 vs 세그먼트 단위 타임스탬프 (기본: word-level)
-  - `--initial-prompt "specialized vocabulary"`: 도메인 특화 어휘 힌트 전달
+  - `--initial-prompt "호텔 디럭스 스위트 트윈"`: 한국어 도메인 힌트 전달
   - `--output-dir`: SRT 저장 경로 지정 (기본: 임시 디렉토리 자동 정리)
   - `--keep-srt/--no-keep-srt`: SRT 파일 보존 여부 (기본: --no-keep-srt, 임시 디렉토리 정리)
   - `--model`: tiny/base/small/medium/large 선택 (기본: small)
@@ -22,13 +104,15 @@
 ### 테스트
 
 - 신규: `tests/test_text_auto_srt.py` — 6개 (happy path + segment-level + initial_prompt + whisper실패 + 미설치 + output-dir 보존 + --help)
-- 전체: **306 passed, 1 skipped** (예상) — 회귀 없음
+- 당시 기록: **306개 통과, 1개 건너뜀** (예상치이며 실행 검증 기록 아님)
 
 ### 버전
 
 - 0.5.1
 
 ## 0.4.4 — 2026-04-19
+
+> **정정 (2026-09-01):** 아래 4종과 0.4.3의 4종을 합친 8종은 `POSTPROCESS_OPS`에는 등록됐지만 `_OP_HANDLERS` 배선이 빠져 replay가 즉시 raise했으므로 당시에는 실제로 동작하지 않았다. CLI의 op 기록과 postprocess의 JSON 패치를 각각 직접 호출한 테스트만 있었고 CLI -> replay -> save 경로는 지나가지 않았다. 2026-09-01에 `POSTPROCESS_OPS`를 단일 소스로 순회하도록 배선하고 E2E 매트릭스로 수정 사실을 검증했다.
 
 ### 복원 — v0.3 기능 4개 (draft_content.json 직접 패치 방식)
 
@@ -51,13 +135,15 @@
 ### 테스트
 
 - 신규: `tests/test_postprocess_v044.py` — 26개 (--help 확인 4 + 세션 op 기록 4 + draft JSON 패치 18)
-- 전체: **300 passed, 1 skipped** — 회귀 없음
+- 당시 기록: **300개 통과, 1개 건너뜀**. 위 정정과 같이 이 결과는 해당 4종의 실제 동작을 입증하지 못했다.
 
 ### 버전
 
 - 0.4.4
 
 ## 0.4.3 — 2026-04-19
+
+> **정정 (2026-09-01):** 아래 4종과 0.4.4의 4종을 합친 8종은 `POSTPROCESS_OPS`에는 등록됐지만 `_OP_HANDLERS` 배선이 빠져 replay가 즉시 raise했으므로 당시에는 실제로 동작하지 않았다. CLI의 op 기록과 postprocess의 JSON 패치를 각각 직접 호출한 테스트만 있었고 CLI -> replay -> save 경로는 지나가지 않았다. 2026-09-01에 `POSTPROCESS_OPS`를 단일 소스로 순회하도록 배선하고 E2E 매트릭스로 수정 사실을 검증했다.
 
 ### 복원 — v0.3 기능 4개 (draft_content.json 직접 패치 방식)
 
@@ -79,7 +165,7 @@
 ### 테스트
 
 - 신규: `tests/test_postprocess_v043.py` — 19개 (--help 확인 4 + 세션 op 기록 5 + draft JSON 패치 10)
-- 전체: **274 passed, 1 skipped** — 회귀 없음
+- 당시 기록: **274개 통과, 1개 건너뜀**. 위 정정과 같이 이 결과는 해당 4종의 실제 동작을 입증하지 못했다.
 
 ### 버전
 
@@ -113,7 +199,7 @@
 
 ### 테스트
 - 신규: render_headless_v2 30, review 37, style 확장 ~20, plan refine ~10 = **~100 신규/확장 테스트**
-- 전체: **255 passed, 1 skipped** — 회귀 없음
+- 당시 기록: **255개 통과, 1개 건너뜀**
 
 ### 버전
 - 0.4.1
@@ -126,16 +212,16 @@
 - **한글 경로 자동 스테이징** (`core/media_staging.py`): video/image/audio `add` 시 한글/공백 경로 감지 → `%TEMP%/capcut-stage/` 에 SHA-1 fingerprint 파일명으로 하드링크(동일 볼륨) 또는 copy. `CAPCUT_NO_STAGING=1` 로 비활성화. `CAPCUT_STAGE_DIR` 로 경로 오버라이드.
 - **`staging` 커맨드 그룹**: `staging stats | clear | list` — 캐시 관리.
 - **auto-fix save** (`core/auto_fix.py`): `save --auto-fix` 로 실패 op 를 격리(quarantine)하고 반복 replay. `--max-attempts N` 로 재시도 한도 조정.
-- **스타일 프리셋 레지스트리** (`core/style_registry.py`, `commands/style.py`): `~/.capcut_cli/styles.json` 에 텍스트 스타일 저장/재사용. 5개 내장 프리셋 — `lifestyle-brand`, `youtube-subtitle`, `news-title`, `minimal-caption`, `cinematic`.
+- **스타일 프리셋 레지스트리** (`core/style_registry.py`, `commands/style.py`): `~/.capcut_cli/styles.json` 에 텍스트 스타일 저장/재사용. 5개 내장 프리셋 — `hotel-brand`, `youtube-subtitle`, `news-title`, `minimal-caption`, `cinematic`.
   - `style list | show | save | delete | export | import`
   - `text add --style <name>`, `srt import --style <name>` — 명시 옵션이 프리셋을 덮어씀.
-- **자연어 plan** (`commands/plan.py`): `plan "30초 제품 광고 숏폼 …" -o recipe.json` — Claude API 로 레시피 JSON 생성. `ANTHROPIC_API_KEY` 필요. `[plan]` extras.
+- **자연어 plan** (`commands/plan.py`): `plan "30초 호텔 홍보 숏폼 …" -o recipe.json` — Claude API 로 레시피 JSON 생성. `ANTHROPIC_API_KEY` 필요. `[plan]` extras.
 - **타임라인 HTML 미리보기** (`commands/preview.py`): `preview -p session.json -o preview.html [--open] [--thumbs]` — self-contained HTML + SVG 간트차트 + ffmpeg 썸네일(옵션) + 겹침/갭 시각화. 외부 CDN 의존성 0.
 - **headless ffmpeg 렌더** (`commands/render_headless.py`): `render-headless -p session.json -o out.mp4 [--crf 20] [--preset medium] [--allow-unsupported] [--dry-run]`. video concat + audio amix + text SRT burn-in + fade/dissolve 지원. 복잡 이펙트(애니메이션/필터/마스크)는 미지원 — `--allow-unsupported` 로 무시 가능. GUI 의존 기존 `render` 는 유지.
 
 ### 테스트
 - 신규: staging 16, auto-fix 9, style 25, plan 16, preview 17, render-headless 25 = **108 신규 테스트**
-- 전체: **156 passed, 1 skipped** (157 collected) — 기존 회귀 없음
+- 당시 기록: **156개 통과, 1개 건너뜀** (157 collected)
 
 ### 버전
 - 0.4.0

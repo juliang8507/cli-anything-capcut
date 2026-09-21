@@ -44,6 +44,7 @@ from cli_anything.capcut.commands.analysis import (
 from cli_anything.capcut.commands.color import color_group
 from cli_anything.capcut.commands.effect import effect_group
 from cli_anything.capcut.commands.helpers import load_session, output_result
+from cli_anything.capcut.commands.import_draft import import_draft_cmd
 from cli_anything.capcut.commands.keyframe import keyframe_group
 from cli_anything.capcut.commands.mask import background_group, mask_group
 from cli_anything.capcut.commands.media import (
@@ -265,6 +266,7 @@ cli.add_command(overlap_detect_cmd)
 cli.add_command(segments_at_cmd)
 
 cli.add_command(import_recipe_cmd)
+cli.add_command(import_draft_cmd)
 cli.add_command(export_recipe_cmd)
 cli.add_command(validate_recipe_cmd)
 cli.add_command(export_script_cmd)

@@ -11,7 +11,7 @@
       },
       "video": {
         "cinematic-warm": {
-          "filter": {"name": "cinematic", "intensity": 40},
+          "filter": {"name": "golden_hour", "intensity": 40},
           "animation_intro": {"name": "fade_in", "duration": "0.5s"},
           "animation_outro": {"name": "fade_out", "duration": "0.5s"},
           "color": {"brightness": 5, "contrast": 10}
@@ -19,8 +19,7 @@
       },
       "audio": {
         "podcast-voice": {
-          "volume": 0.9, "fade_in": "0.3s", "fade_out": "0.5s",
-          "effect": {"name": "noise-reduction"}
+          "volume": 0.9, "fade_in": "0.3s", "fade_out": "0.5s"
         }
       }
     }
@@ -70,8 +69,8 @@ CATEGORIES: tuple[str, ...] = ("text", "video", "audio")
 
 _BUILTIN: dict[str, dict[str, dict]] = {
     "text": {
-        "lifestyle-brand": {
-            "font": "GothicA1-Bold",
+        "hotel-brand": {
+            "font": "malgun_gothic_bold",
             "size": 6.0,
             "bold": True,
             "color": [1.0, 1.0, 1.0],
@@ -80,10 +79,10 @@ _BUILTIN: dict[str, dict[str, dict]] = {
             "clip_settings": {"transform_x": 0.0, "transform_y": -0.75},
             "align": "center",
             "_builtin": True,
-            "_description": "브랜드 자막 — 흰색 고딕, 네이비 테두리, 하단",
+            "_description": "호텔 브랜드 자막 — 흰색 고딕, 네이비 테두리, 하단",
         },
         "youtube-subtitle": {
-            "font": "arial",
+            "font": "noto_sans_kr",
             "size": 5.0,
             "bold": True,
             "color": [1.0, 1.0, 1.0],
@@ -92,10 +91,10 @@ _BUILTIN: dict[str, dict[str, dict]] = {
             "clip_settings": {"transform_x": 0.0, "transform_y": -0.75},
             "align": "center",
             "_builtin": True,
-            "_description": "유튜브 표준 자막 — 흰 Arial bold + 검정 테두리",
+            "_description": "유튜브 표준 자막 — 흰 Noto Sans KR bold + 검정 테두리",
         },
         "news-title": {
-            "font": "GothicA1-Bold",
+            "font": "malgun_gothic_bold",
             "size": 6.5,
             "bold": True,
             "color": [1.0, 1.0, 1.0],
@@ -107,7 +106,7 @@ _BUILTIN: dict[str, dict[str, dict]] = {
             "_description": "뉴스 로어서드 — 빨간 테두리로 헤드라인 느낌",
         },
         "minimal-caption": {
-            "font": "arial",
+            "font": "malgun_gothic_semilight",
             "size": 4.5,
             "bold": False,
             "color": [1.0, 1.0, 1.0],
@@ -134,7 +133,7 @@ _BUILTIN: dict[str, dict[str, dict]] = {
     },
     "video": {
         "cinematic-warm": {
-            "filter": {"name": "cinematic", "intensity": 40},
+            "filter": {"name": "golden_hour", "intensity": 40},
             "animation_intro": {"name": "fade_in", "duration": "0.5s"},
             "animation_outro": {"name": "fade_out", "duration": "0.5s"},
             "color": {"brightness": 5, "contrast": 10, "temperature": 15},
@@ -142,7 +141,7 @@ _BUILTIN: dict[str, dict[str, dict]] = {
             "_description": "따뜻한 시네마틱 룩 — 필터 + 페이드 + 따뜻한 색온도",
         },
         "social-punchy": {
-            "filter": {"name": "vivid", "intensity": 60},
+            "filter": {"name": "bright", "intensity": 60},
             "animation_intro": {"name": "zoom_in", "duration": "0.3s"},
             "color": {"saturation": 15, "contrast": 10},
             "_builtin": True,
@@ -159,9 +158,8 @@ _BUILTIN: dict[str, dict[str, dict]] = {
             "volume": 0.9,
             "fade_in": "0.3s",
             "fade_out": "0.5s",
-            "effect": {"name": "noise-reduction"},
             "_builtin": True,
-            "_description": "팟캐스트 보이스 — 잡음 제거 + 짧은 페이드",
+            "_description": "팟캐스트 보이스 — 일정한 볼륨 + 짧은 페이드",
         },
         "bgm-background": {
             "volume": 0.3,
@@ -503,9 +501,8 @@ def apply_video_style(
     """비디오 스타일 프리셋을 세그먼트에 일괄 적용.
 
     내부 동작:
-      - ``filter`` → ``add_filter`` (트랙 이름은 CapCut 필터 트랙이 필요해서
-        ``track`` 과 동일하게 사용. 필터 트랙이 따로 있는 경우 사용자가
-        track 을 명시)
+      - ``filter`` → ``add_filter`` (대상 비디오 트랙과 타입이 다른 전용
+        ``<track>__filter`` 트랙을 사용)
       - ``animation_intro`` / ``animation_outro`` → ``add_video_animation``
       - ``color`` → ``color_adjust`` (postprocess queued)
 
@@ -533,7 +530,7 @@ def apply_video_style(
             if isinstance(filt, dict) and filt.get("name"):
                 args = {
                     "name": filt["name"],
-                    "track": track,
+                    "track": f"{track}__filter",
                     "intensity": filt.get("intensity"),
                 }
                 if orig:
