@@ -221,6 +221,12 @@ def test_capcut_system_font_stem_resolves_with_empty_id(
 def test_bundled_generic_alias_can_match_scanned_system_font_tokens(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """구체 후보가 하나도 없을 때만 일반 별칭이 토큰 매칭으로 내려간다.
+
+    WINDIR 까지 비워 GENERIC_FONT_FALLBACKS 후보가 없는 환경을 만든다.
+    그래야 토큰 매칭 경로 자체를 검증할 수 있다. 복사해 넣는 파일은
+    이름만 Source_Serif_4 이고 내용은 한글 TTF 라서 수락된다.
+    """
     _, source_font = _installed_local_font()
     local_app_data = tmp_path / "local-app-data"
     system_font = (
@@ -235,6 +241,7 @@ def test_bundled_generic_alias_can_match_scanned_system_font_tokens(
     system_font.parent.mkdir(parents=True)
     shutil.copy2(source_font, system_font)
     monkeypatch.setenv("LOCALAPPDATA", str(local_app_data))
+    monkeypatch.setenv("WINDIR", str(tmp_path / "no-system-fonts"))
 
     runner, session_path, drafts = _new_text_project(tmp_path, "generic-serif")
     _add_text_with_font(runner, session_path, "serif")
@@ -242,6 +249,66 @@ def test_bundled_generic_alias_can_match_scanned_system_font_tokens(
 
     font = json.loads(draft["materials"]["texts"][0]["content"])["styles"][0]["font"]
     assert font == {"id": "", "path": system_font.resolve().as_posix()}
+
+
+def test_generic_alias_prefers_hangul_capable_family_over_token_match(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """'serif' 는 이름이 serif 인 파일보다 한글 명조 후보를 먼저 고른다.
+
+    CapCut 폰트 경로는 한글 cmap 을 검사하지 않고 등록하므로, 이름에 serif 가
+    들어간 라틴 전용 폰트가 잡혀 한글 자막이 조용히 깨질 수 있었다.
+    """
+    _, source_font = _installed_local_font()
+    local_app_data = tmp_path / "local-app-data"
+    system_font_dir = (
+        local_app_data / "CapCut" / "User Data" / "Resources" / "Font" / "SystemFont"
+    )
+    system_font_dir.mkdir(parents=True)
+    decoy = system_font_dir / "Source_Serif_4_18pt-BoldItalic.ttf"
+    shutil.copy2(source_font, decoy)
+
+    # GENERIC_FONT_FALLBACKS 의 첫 후보를 사용자 폰트 폴더에 둔다.
+    user_font_dir = local_app_data / "Microsoft" / "Windows" / "Fonts"
+    user_font_dir.mkdir(parents=True)
+    preferred = user_font_dir / "NotoSerifKR.ttf"
+    shutil.copy2(source_font, preferred)
+
+    monkeypatch.setenv("LOCALAPPDATA", str(local_app_data))
+    monkeypatch.setenv("WINDIR", str(tmp_path / "no-system-fonts"))
+
+    runner, session_path, drafts = _new_text_project(tmp_path, "generic-serif-pref")
+    _add_text_with_font(runner, session_path, "serif")
+    _, draft = _save_and_load(runner, session_path, drafts)
+
+    font = json.loads(draft["materials"]["texts"][0]["content"])["styles"][0]["font"]
+    assert font == {"id": "", "path": preferred.resolve().as_posix()}
+
+
+def test_generic_alias_rejects_latin_only_font_and_reports_candidates(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """한글 cmap 이 없는 파일뿐이면 그걸 쓰지 않고 후보를 알려준다."""
+    latin_only = Path("C:/Windows/Fonts/arial.ttf")
+    if not latin_only.is_file():
+        pytest.skip("테스트 환경에 라틴 전용 TTF(arial)가 없음")
+
+    local_app_data = tmp_path / "local-app-data"
+    system_font_dir = (
+        local_app_data / "CapCut" / "User Data" / "Resources" / "Font" / "SystemFont"
+    )
+    system_font_dir.mkdir(parents=True)
+    shutil.copy2(latin_only, system_font_dir / "Source_Serif_4_18pt.ttf")
+
+    monkeypatch.setenv("LOCALAPPDATA", str(local_app_data))
+    monkeypatch.setenv("WINDIR", str(tmp_path / "no-system-fonts"))
+
+    with pytest.raises(KeyError) as excinfo:
+        alias_map.resolve_font("serif")
+
+    message = str(excinfo.value)
+    assert "한글 폰트를 이 PC에서 찾지 못했습니다" in message
+    assert "nanum_myeongjo" in message
 
 
 def test_local_font_alias_writes_existing_absolute_ttf_path(tmp_path: Path) -> None:

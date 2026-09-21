@@ -12,6 +12,21 @@ on:
 # 그래서 CI 도 windows 러너에서 돈다 — ubuntu 에서는 내장 텍스트 스타일이
 # 참조하는 시스템 폰트가 존재하지 않아 검증 자체가 성립하지 않는다.
 jobs:
+  # 이 저장소는 개인 개발본에서 주기적으로 동기화된다. 동기화할 때마다 사람이
+  # 기억해서 익명화하는 방식은 언젠가 실패하므로 게이트로 막는다.
+  # 파일 텍스트만 읽으므로 ubuntu 에서 빠르게 돈다.
+  privacy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Scan for private strings
+        run: python scripts/scan_private.py
+
   test:
     runs-on: windows-latest
     strategy:

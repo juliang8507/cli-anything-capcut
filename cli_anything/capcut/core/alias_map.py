@@ -515,6 +515,38 @@ FONT_ALIASES: dict[str, str] = _build_bundled_font_aliases()
 BUNDLED_FONT_ALIASES = FONT_ALIASES
 LOCAL_FONT_ALIASES: dict[str, str] = {}
 
+# 일반명(generic family) -> 한글을 지원하는 구체 폰트 우선순위.
+#
+# CapCut 폰트 경로(캐시 / SystemFont)는 한글 cmap 을 검사하지 않고 별칭을
+# 등록한다(_discover_available_fonts_at 의 2, 3번). 그래서 'serif' 같은
+# 일반명이 라틴 전용 폰트에 매칭될 수 있다. 실제로 내장 스타일
+# text/cinematic 의 'serif' 가 SourceSerif4(한글 cmap 없음)로 해석되어
+# 한글 자막이 깨졌다. 게다가 그 매칭은 "토큰이 유일할 때"만 성립하므로
+# PC 에 따라 결과가 달라진다.
+#
+# 일반명은 토큰 매칭에 맡기지 않고 아래 순서로만 해석한다.
+GENERIC_FONT_FALLBACKS: dict[str, tuple[str, ...]] = {
+    "serif": (
+        "noto_serif_kr",
+        "nanum_myeongjo",
+        "gungsuh",
+        "batang",
+        "gowun_batang",
+        "jeju_myeongjo",
+    ),
+    "sans_serif": (
+        "noto_sans_kr",
+        "malgun_gothic",
+        "nanum_gothic",
+        "gulim",
+    ),
+    "monospace": (
+        "d2coding",
+        "nanum_gothic_coding",
+        "gulim",
+    ),
+}
+
 
 def _bundled_aliases_by_resource_id() -> dict[str, list[str]]:
     aliases_by_id: dict[str, list[str]] = {}
@@ -625,6 +657,33 @@ def resolve_font(name_or_alias: str) -> dict[str, str]:
     resolved = available.get(key)
     if resolved is not None and Path(resolved["font_path"]).is_file():
         return dict(resolved)
+
+    # 일반명은 한글 지원이 확인된 후보로만 해석한다. 토큰 매칭에 맡기면
+    # 라틴 전용 폰트가 잡혀 한글 자막이 조용히 깨진다.
+    fallbacks = GENERIC_FONT_FALLBACKS.get(key)
+    if fallbacks is not None:
+        for candidate in fallbacks:
+            candidate_resolved = available.get(normalize_font_alias(candidate))
+            if candidate_resolved is None:
+                continue
+            if Path(candidate_resolved["font_path"]).is_file():
+                return dict(candidate_resolved)
+        # 구체 후보가 없으면 토큰 매칭으로 넘어가되, 한글 cmap 이 있는 파일만
+        # 수락한다. 파일 이름이 아니라 내용으로 판단한다 — 이름에 serif 가
+        # 들어가도 라틴 전용이면 한글 자막이 깨진다.
+        token_match = _unique_token_match(key, available)
+        if token_match is not None:
+            token_path = Path(token_match["font_path"])
+            if token_path.is_file() and _font_file_aliases(
+                token_path, require_hangul=True
+            ):
+                return token_match
+
+        raise KeyError(
+            f"'{name_or_alias}' 계열의 한글 폰트를 이 PC에서 찾지 못했습니다. "
+            f"다음 중 하나를 설치하거나 구체적인 폰트 이름을 지정하세요: "
+            f"{', '.join(fallbacks)}"
+        )
 
     if key in BUNDLED_FONT_ALIASES:
         token_match = _unique_token_match(key, available)
