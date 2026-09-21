@@ -12,7 +12,11 @@ CapCut / JianYing(剪映) 드래프트를 CLI로 스크립팅하는 하네스. `
 ## 설치
 
 ```bash
-pip install pycapcut       # upstream library
+# upstream library.
+# PyPI 의 pycapcut 0.0.3 에는 text shadow 지원이 빠져 있어 (TextSegment(shadow=...)),
+# 내장 텍스트 스타일이 동작하지 않는다. upstream git 을 커밋 고정으로 설치한다.
+pip install "pycapcut @ git+https://github.com/GuanYixuan/pyCapCut.git@00c223aa246f955d741b17b703e10270b22ec75e"
+
 pip install -e .           # this CLI
 ```
 
