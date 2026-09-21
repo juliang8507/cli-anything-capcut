@@ -5,6 +5,50 @@
 > 실제로 반영되는지 확인해야** 완료로 적는다 — draft 에 필드가 있어도 CapCut 이 읽지 않으면
 > 사용자에게는 아무 일도 일어나지 않는다 (2026-09-01 폰트 실측으로 확인, docs/capcut-gui-verification.md).
 
+## 0.5.6 - 2026-09-21 (에이전트 신뢰성)
+
+### 추가 - 별칭을 입력 시점에 검증한다
+
+`effect add --name zzzz` 가 `status: added` 로 통과하고, 20개 명령 뒤 `save` 에서야
+`Unknown effect type` 으로 터졌다. 잘못된 결과물이 만들어지지는 않지만, 이 CLI 의 주
+사용자는 AI 에이전트이고 에이전트는 각 명령의 성공을 보고 다음 단계를 정한다. 뒤늦게
+실패하면 어느 명령이 원인인지 되짚어야 한다.
+
+값이 그 자리에서 확정되는 enum 별칭은 입력 시점에 막는다(`validate_alias_now`).
+적용: `effect add` / `effect add-filter` / `mask add` / `video add-transition` /
+`video add-animation`(role 별 enum) / `audio add-effect`.
+세그먼트 참조처럼 나중 상태에 의존하는 값은 그대로 replay 검증에 맡긴다.
+
+### 수정 - render-headless 가 자막 스타일을 버리고 있었다
+
+`subtitles` 필터에 `force_style` 을 주지 않아, 세션에 어떤 폰트·색·테두리를 지정해도
+libass 기본값으로 구워졌다. 같은 세션이 CapCut 에서는 나눔명조, headless 에서는
+고딕으로 나왔다.
+
+- 폰트는 `text_style_patch` op 가 들고 있는 실제 파일 경로를 쓴다(`text add` 는 폰트를
+  add_text args 에 남기지 않는다). 파일에서 family 이름을 읽어 `FontName` 과
+  `fontsdir` 로 넘긴다 — `alias_map.font_family_name()` 추가.
+- 색·테두리를 ASS 표기(&HAABBGGRR, BGR 순서)로 변환해 전달한다.
+- 글자 크기는 **일부러 넘기지 않는다.** CapCut 의 size 단위와 ASS FontSize 의 대응이
+  확인되지 않아, 근거 없는 환산은 지금보다 나쁜 결과를 만든다.
+- SRT 는 스타일을 하나만 담으므로 세그먼트마다 다르면 첫 세그먼트를 따르고 경고한다.
+
+실측: `--style cinematic` 자막이 libass 기본 고딕 -> 나눔명조로 바뀐다.
+
+### 수정 - diagnose 가 틀린 버전을 보고했다
+
+설치 메타데이터를 먼저 읽어서, 오래된 설치가 남아 있으면 실제 코드와 다른 버전을
+출력했다(실측: 코드 0.5.5 인데 `cli_version: 0.4.1`). 진단 명령이 틀린 값을 말하면
+그걸 보고 판단하는 쪽이 잘못된 결론을 낸다.
+
+- 버전의 단일 소스를 `cli_anything/capcut/__init__.py` 로 옮기고 pyproject 가 그 값을
+  읽는다(`dynamic = ["version"]`).
+- 설치본과 다르면 `installed_version` 과 `version_mismatch` 로 함께 알린다.
+- `pycapcut_version` 이 upstream git 설치본에서 `unknown` 으로만 나오던 것을 설치
+  메타데이터로 되짚어 실제 값을 보고한다.
+
+398 passed 유지.
+
 ## 0.5.5 - 2026-09-21 (성능 / 견고성)
 
 ### 성능 - 폰트를 쓰는 명령이 매번 3.6 초를 버리고 있었다

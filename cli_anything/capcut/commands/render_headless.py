@@ -376,6 +376,104 @@ def _us_to_srt_ts(us: int) -> str:
     return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
 
 
+def _ass_colour(rgb, alpha: float = 1.0) -> str:
+    """CapCut 의 [r,g,b] 를 ASS 의 &HAABBGGRR 로. ASS 는 BGR 순서이고 알파는 반전이다."""
+    if not isinstance(rgb, (list, tuple)) or len(rgb) < 3:
+        return "&H00FFFFFF"
+    r, g, b = rgb[:3]
+    if max(r, g, b) <= 1.0:
+        r, g, b = r * 255, g * 255, b * 255
+    a = int(round((1.0 - max(0.0, min(1.0, alpha))) * 255))
+    return f"&H{a:02X}{int(b):02X}{int(g):02X}{int(r):02X}"
+
+
+def _subtitle_force_style(text_segs: list[dict], session: Session) -> tuple[str, str | None, list[str]]:
+    """세션의 텍스트 스타일을 libass force_style 로 옮긴다.
+
+    SRT 는 스타일을 담지 못하므로 ffmpeg 의 subtitles 필터에 force_style 로 넘긴다.
+    이걸 하지 않으면 세션에 무슨 폰트를 지정하든 libass 기본값으로 구워져,
+    같은 세션이 CapCut 과 headless 에서 다르게 보인다.
+
+    반환: (force_style 문자열, fontsdir 경로 또는 None, 경고 목록)
+
+    한계: 자막 트랙 전체에 하나의 스타일만 적용된다(SRT 의 제약). 세그먼트마다
+    스타일이 다르면 첫 세그먼트를 따르고 경고한다. 글자 크기는 CapCut 의 size
+    단위와 ASS 의 FontSize 가 대응 관계가 확인되지 않아 건드리지 않는다.
+    """
+    from cli_anything.capcut.core import style_registry
+    from cli_anything.capcut.core.alias_map import font_family_name
+
+    warnings: list[str] = []
+    if not text_segs:
+        return "", None, warnings
+
+    ordered = sorted(text_segs, key=lambda s: s["start_us"])
+    specs = []
+    for s in ordered:
+        a = dict(s.get("args") or {})
+        preset = a.get("style")
+        if preset:
+            try:
+                base = style_registry.get_style(preset, "text") or {}
+                merged = dict(base)
+                merged.update({k: v for k, v in a.items() if v is not None})
+                a = merged
+            except Exception:
+                pass
+        specs.append(a)
+
+    first = specs[0]
+    keys = ("font", "color", "border", "bold")
+    if any(tuple(sp.get(k) for k in keys) != tuple(first.get(k) for k in keys) for sp in specs[1:]):
+        warnings.append(
+            "자막 세그먼트마다 스타일이 다르지만 SRT 는 하나의 스타일만 담는다. "
+            "첫 세그먼트의 스타일을 전체에 적용한다."
+        )
+
+    parts: list[str] = []
+    fontsdir: str | None = None
+
+    # 폰트는 add_text 의 args 에 남지 않는다. text add 는 스타일을 풀어 넣으면서
+    # 폰트만 따로 text_style_patch op 로 큐잉하고, 거기에 해석된 실제 파일 경로가
+    # 들어 있다. 별칭을 다시 해석할 필요 없이 그 경로를 쓴다.
+    first_id = ordered[0].get("id")
+    font_path = None
+    for op in session.data.get("operations", []):
+        if op.get("op") != "text_style_patch":
+            continue
+        a = op.get("args") or {}
+        if a.get("segment_ref") in (first_id, None) and a.get("font_path"):
+            font_path = a["font_path"]
+            break
+    if font_path:
+        fp = Path(font_path)
+        family = font_family_name(fp) if fp.is_file() else None
+        if family:
+            parts.append(f"FontName={family}")
+            fontsdir = fp.parent.as_posix()
+        else:
+            warnings.append(
+                f"자막 폰트 '{fp.name}' 의 이름을 읽지 못해 libass 기본 폰트로 구워진다.")
+
+    color = first.get("color")
+    if color is not None:
+        parts.append(f"PrimaryColour={_ass_colour(color)}")
+
+    border = first.get("border")
+    if isinstance(border, dict):
+        parts.append(f"OutlineColour={_ass_colour(border.get('color'), border.get('alpha', 1.0))}")
+        width = border.get("width")
+        if isinstance(width, (int, float)):
+            # CapCut 의 0~1 테두리 폭을 ASS 의 픽셀 두께로. 실측 대응이 아니라
+            # 눈으로 비슷해지는 범위의 근사이며 상한을 둔다.
+            parts.append(f"Outline={max(1, min(6, round(width * 40)))}")
+
+    if first.get("bold"):
+        parts.append("Bold=1")
+
+    return ",".join(parts), fontsdir, warnings
+
+
 def _write_srt_for_text_segments(text_segs: list[dict], path: Path) -> int:
     """T1 트랙의 add_text 세그먼트들을 SRT로 덤프. 반환=쿠 수."""
     ordered = sorted(text_segs, key=lambda s: s["start_us"])
@@ -946,7 +1044,14 @@ def build_ffmpeg_command(
     if text_segs and srt_path is not None:
         _write_srt_for_text_segments(text_segs, srt_path)
         escaped = _ffmpeg_escape_path(str(srt_path.resolve()))
-        fc_parts.append(f"{post_overlay_label}subtitles='{escaped}'[vout]")
+        style, fontsdir, style_warnings = _subtitle_force_style(text_segs, session)
+        analysis["warnings"].extend(style_warnings)
+        sub_opts = f"subtitles='{escaped}'"
+        if fontsdir:
+            sub_opts += f":fontsdir='{_ffmpeg_escape_path(fontsdir)}'"
+        if style:
+            sub_opts += f":force_style='{style}'"
+        fc_parts.append(f"{post_overlay_label}{sub_opts}[vout]")
         vout_final = "[vout]"
     else:
         fc_parts.append(f"{post_overlay_label}null[vout]")

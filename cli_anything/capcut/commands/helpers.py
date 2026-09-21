@@ -169,3 +169,39 @@ def resolve_clip_settings(value: str | None) -> dict | None:
             f"clip-settings: '{value}'는 프리셋도 JSON도 아님. "
             f"프리셋: {', '.join(CLIP_PRESETS)}"
         )
+
+
+def validate_alias_now(enum_class_names: tuple[str, ...], value: str, what: str) -> None:
+    """별칭을 입력 시점에 검증한다.
+
+    이 CLI 는 이벤트 소스라 ``add`` 는 op 를 기록만 하고 실제 검증은 ``save`` 의
+    replay 에서 일어난다. 하지만 이 도구의 주 사용자는 AI 에이전트이고, 에이전트는
+    각 명령의 성공을 보고 다음 단계를 정한다. 잘못된 이름이 ``status: added`` 로
+    통과하면 20개 명령 뒤 save 에서 터지고, 그때 어느 명령이 원인인지 되짚어야 한다.
+
+    그래서 그 자리에서 값이 확정되는 것(enum 별칭)은 입력 시점에 막는다.
+    세그먼트 참조처럼 나중 상태에 의존하는 것은 여기서 다루지 않는다.
+    """
+    try:
+        import pycapcut as cc
+    except ImportError:  # pycapcut 이 없으면 save 가 어차피 실패한다
+        return
+    from cli_anything.capcut.core.alias_map import resolve_alias
+
+    for cls_name in enum_class_names:
+        enum_cls = getattr(cc, cls_name, None)
+        if enum_cls is None:
+            # 이 pycapcut 빌드에 없는 enum 이면 판단하지 않고 save 검증에 맡긴다
+            return
+        try:
+            if resolve_alias(cls_name, value) in enum_cls.__members__:
+                return
+        except (KeyError, ValueError):
+            continue
+
+    primary = enum_class_names[0]
+    raise click.ClickException(
+        f"{what} '{value}' 를 찾을 수 없습니다 ({' / '.join(enum_class_names)}).\n"
+        f"후보 검색: cli-anything-capcut alias search --class {primary} -k <키워드>\n"
+        f"전체 목록: cli-anything-capcut alias list --class {primary}"
+    )

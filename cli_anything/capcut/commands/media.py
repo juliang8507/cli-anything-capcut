@@ -5,6 +5,7 @@ from __future__ import annotations
 import click
 
 from cli_anything.capcut.commands.helpers import (
+    validate_alias_now,
     append_validated_operation,
     load_session,
     output_result,
@@ -136,6 +137,7 @@ def audio_add_fade(ctx, project_path, track, segment_ref, fade_in, fade_out):
 @click.option("--name", required=True, help="효과 이름 (영어 별칭 또는 한자)")
 @click.pass_context
 def audio_add_effect(ctx, project_path, track, segment_ref, name):
+    validate_alias_now(("AudioSceneEffectType",), name, "오디오 효과")
     session = load_session(project_path)
     result = append_validated_operation(
         session,
@@ -171,6 +173,7 @@ def video_add_fade(ctx, project_path, track, segment_ref, fade_in, fade_out):
 @click.option("--duration", default="500ms", show_default=True)
 @click.pass_context
 def video_add_transition(ctx, project_path, track, segment_ref, name, duration):
+    validate_alias_now(("TransitionType",), name, "트랜지션")
     session = load_session(project_path)
     result = append_validated_operation(
         session,
@@ -189,6 +192,9 @@ def video_add_transition(ctx, project_path, track, segment_ref, name, duration):
 @click.option("--duration", default="500ms", show_default=True)
 @click.pass_context
 def video_add_animation(ctx, project_path, track, segment_ref, role, name, duration):
+    # role 에 따라 enum 이 갈린다. op_handlers 의 anim_map 과 같은 매핑이다.
+    _anim_enum = {"intro": "IntroType", "outro": "OutroType", "group": "GroupAnimationType"}
+    validate_alias_now((_anim_enum.get(role, "IntroType"),), name, f"{role} 애니메이션")
     session = load_session(project_path)
     result = append_validated_operation(
         session,

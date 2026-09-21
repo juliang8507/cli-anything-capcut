@@ -899,3 +899,25 @@ def search_all_enums(keyword: str, limit: int = 10) -> dict[str, list[dict[str, 
         if found:
             results[enum_class_name] = found
     return results
+
+
+def font_family_name(font_path: str | Path) -> str | None:
+    """폰트 파일에서 대표 family 이름을 읽는다.
+
+    libass(ffmpeg 의 subtitles 필터)의 ``force_style`` 은 파일 경로가 아니라
+    폰트 **이름**을 받는다. render-headless 가 세션에 지정된 폰트를 자막에
+    반영하려면 이 이름이 필요하다.
+    """
+    path = Path(font_path)
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return None
+    for sfnt_offset in _sfnt_offsets(data):
+        tables = _sfnt_tables(data, sfnt_offset)
+        if b"name" not in tables:
+            continue
+        names = _font_names(data, tables[b"name"], tables)
+        if names:
+            return names[0]
+    return None

@@ -206,10 +206,35 @@ def save_cmd(ctx, project_path, dry_run, skip_errors, auto_fix, max_attempts):
 def diagnose_cmd(ctx):
     from cli_anything.capcut.core.time_utils import is_ffprobe_available
 
+    from cli_anything.capcut import installed_version
+
+    # pycapcut 은 upstream git 설치본에 __version__ 이 없을 수 있다. 그때는
+    # 설치 메타데이터로 되짚는다. 'unknown' 만 내놓으면 진단 가치가 없다.
+    pycapcut_ver = getattr(cc, "__version__", None)
+    if not pycapcut_ver:
+        try:
+            from importlib.metadata import version as _pv
+            pycapcut_ver = _pv("pycapcut")
+        except Exception:
+            pycapcut_ver = "unknown"
+
+    info = {
+        "cli_version": __version__,
+        "pycapcut_version": pycapcut_ver,
+    }
+    # 실행 중인 소스와 설치본이 다르면 그대로 알린다. 조용히 한쪽만 보여주면
+    # 어느 코드가 도는지 오해하게 된다.
+    inst = installed_version()
+    if inst and inst != __version__:
+        info["installed_version"] = inst
+        info["version_mismatch"] = (
+            f"실행 중인 소스는 {__version__} 인데 설치된 배포판은 {inst} 이다. "
+            "editable 설치가 오래됐거나 PYTHONPATH 가 다른 소스를 가리킨다."
+        )
+
     output_result(
         {
-            "cli_version": __version__,
-            "pycapcut_version": getattr(cc, "__version__", "unknown"),
+            **info,
             "draft_folder": get_default_draft_folder(),
             "ffprobe_available": is_ffprobe_available(),
             "python": sys.version.split()[0],

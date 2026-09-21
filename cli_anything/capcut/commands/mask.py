@@ -5,6 +5,7 @@ from __future__ import annotations
 import click
 
 from cli_anything.capcut.commands.helpers import (
+    validate_alias_now,
     append_validated_operation,
     load_session,
     output_result,
@@ -35,6 +36,7 @@ def mask_group():
 @click.pass_context
 def mask_add(ctx, project_path, track, segment_ref, name, center_x, center_y, size,
              rotation, feather, invert, rect_width, round_corner):
+    validate_alias_now(("MaskType",), name, "마스크")
     session = load_session(project_path)
     args = {
         "track": track,

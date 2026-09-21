@@ -4,7 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cli-anything-capcut"
-version = "0.5.5"
+# 버전은 cli_anything/capcut/__init__.py 가 단일 소스다.
+dynamic = ["version"]
 description = "CLI harness for pyCapCut — scriptable CapCut / JianYing draft generation"
 readme = "README.md"
 license = { text = "MIT" }
@@ -48,6 +49,9 @@ cli-anything-capcut = "cli_anything.capcut.capcut_cli:main"
 [project.urls]
 Homepage = "https://github.com/juliang8507/cli-anything-capcut"
 Issues = "https://github.com/juliang8507/cli-anything-capcut/issues"
+
+[tool.setuptools.dynamic]
+version = { attr = "cli_anything.capcut.__version__" }
 
 [tool.setuptools.packages.find]
 include = ["cli_anything*"]

@@ -27,7 +27,7 @@ CLI는 필요할 때만 호출되고 출력이 그대로 텍스트라 에이전�
 
 </details>
 
-> **현재 버전: 0.5.5** · Windows 전용
+> **현재 버전: 0.5.6** · Windows 전용
 > 변경 이력은 [CHANGELOG.md](CHANGELOG.md) 참조.
 
 ## 설치

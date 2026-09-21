@@ -29,7 +29,7 @@ the **tool-exposure styles in general — they are not measurements of this proj
 
 </details>
 
-> **Version 0.5.5** · See [CHANGELOG.md](CHANGELOG.md).
+> **Version 0.5.6** · See [CHANGELOG.md](CHANGELOG.md).
 
 ## Requirements
 

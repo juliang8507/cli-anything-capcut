@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import click
 
-from cli_anything.capcut.commands.helpers import load_session, output_result
+from cli_anything.capcut.commands.helpers import load_session, output_result, validate_alias_now
 from cli_anything.capcut.core.time_utils import resolve_start_time
 
 
@@ -21,6 +21,7 @@ def effect_group():
 @click.option("--track", default=None, help="effect 트랙 이름")
 @click.pass_context
 def effect_add(ctx, project_path, name, start, duration, track):
+    validate_alias_now(("VideoSceneEffectType", "VideoCharacterEffectType"), name, "효과")
     session = load_session(project_path)
     args = {
         "name": name,
@@ -41,6 +42,7 @@ def effect_add(ctx, project_path, name, start, duration, track):
 @click.option("--intensity", type=float, default=1.0, show_default=True)
 @click.pass_context
 def effect_add_filter(ctx, project_path, name, start, duration, track, intensity):
+    validate_alias_now(("FilterType",), name, "필터")
     session = load_session(project_path)
     args = {
         "name": name,
